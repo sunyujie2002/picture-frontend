@@ -1,0 +1,187 @@
+import dayjs from 'dayjs'
+import {
+  REVIEW_STATUS_MAP,
+  SPACE_LEVEL_MAP,
+  SPACE_ROLE_MAP,
+  SPACE_TYPE_MAP,
+  USER_ROLE_MAP
+} from '@/constants'
+import { getToken } from '@/api/request'
+
+/**
+ * 格式化文件体积
+ * @param {number|string} bytes 字节数
+ * @param {number} digits 小数位，默认 2；容量类数值可传 3 提升精度
+ */
+export function formatSize(bytes, digits = 2) {
+  if (bytes === null || bytes === undefined || bytes === '') return '-'
+  const size = Number(bytes)
+  if (Number.isNaN(size) || size < 0) return '-'
+  if (size < 1024) return `${size} B`
+  if (size < 1024 * 1024) return `${(size / 1024).toFixed(1)} KB`
+  if (size < 1024 * 1024 * 1024) return `${(size / 1024 / 1024).toFixed(digits)} MB`
+  return `${(size / 1024 / 1024 / 1024).toFixed(digits)} GB`
+}
+
+/** 格式化时间，空值返回占位符 */
+export function formatTime(time, placeholder = '-') {
+  if (!time) return placeholder
+  const d = dayjs(time)
+  return d.isValid() ? d.format('YYYY-MM-DD HH:mm') : placeholder
+}
+
+/**
+ * 归一化主色调：后端可能返回 0xRRGGBB / #RRGGBB / RRGGBB
+ * @returns {string} #RRGGBB，无法解析时返回空串
+ */
+export function normalizeColor(color) {
+  if (!color) return ''
+  let hex = String(color).trim()
+  if (hex.startsWith('0x') || hex.startsWith('0X')) hex = `#${hex.slice(2)}`
+  if (!hex.startsWith('#')) hex = `#${hex}`
+  // 仅接受 #RGB / #RRGGBB
+  if (/^#([0-9a-fA-F]{3}|[0-9a-fA-F]{6})$/.test(hex)) {
+    if (hex.length === 4) {
+      hex = `#${hex[1]}${hex[1]}${hex[2]}${hex[2]}${hex[3]}${hex[3]}`
+    }
+    return hex.toLowerCase()
+  }
+  return ''
+}
+
+/** 宽高比保留两位小数 */
+export function formatScale(scale) {
+  if (!scale) return '-'
+  const val = Number(scale)
+  return Number.isNaN(val) ? '-' : val.toFixed(2)
+}
+
+/** 审核状态元信息 */
+export function reviewMeta(status) {
+  return REVIEW_STATUS_MAP[status] || { label: '未知', color: 'default' }
+}
+
+/** 空间级别元信息 */
+export function spaceLevelMeta(level) {
+  return SPACE_LEVEL_MAP[level] || { label: '未知', color: 'default' }
+}
+
+/** 用户角色元信息 */
+export function userRoleMeta(role) {
+  return USER_ROLE_MAP[role] || { label: role || '未知', color: 'default' }
+}
+
+/** 空间类型元信息（个人空间 / 团队空间） */
+export function spaceTypeMeta(type) {
+  return SPACE_TYPE_MAP[type] || { label: '未知', color: 'default' }
+}
+
+/** 团队空间角色元信息（viewer / editor / admin） */
+export function spaceRoleMeta(role) {
+  return SPACE_ROLE_MAP[role] || { label: role || '未知', color: 'default', desc: '' }
+}
+
+/**
+ * 下载图片（统一走后端接口 GET /picture/download?id={id}）
+ *
+ * 后端按 id 鉴权后把 COS 文件以 application/octet-stream 流式返回，
+ * 并在响应头 Content-Disposition: attachment; filename*=UTF-8''<编码文件名>
+ * 中声明真实文件名（数据库 picName + 实际格式）。
+ *
+ * 鉴权依赖 Authorization 请求头（token 存于 localStorage，不会随浏览器普通跳转携带），
+ * 因此必须用 fetch 显式带上 Authorization，不能仅靠 <a href> / window.location 跳转。
+ *
+ * @param {object} picture 图片对象，至少包含 id（字符串，勿转 Number）
+ * @returns {Promise<void>} 成功 resolve；失败 reject（错误信息优先取自后端响应）
+ */
+export async function downloadPicture(picture) {
+  const id = picture?.id
+  if (id === null || id === undefined || id === '') {
+    throw new Error('图片ID缺失，无法下载')
+  }
+
+  const base = import.meta.env.VITE_API_BASE_URL || '/api'
+  const url = `${base}/picture/download?id=${encodeURIComponent(id)}`
+
+  let resp
+  try {
+    resp = await fetch(url, { method: 'GET', headers: { Authorization: getToken() } })
+  } catch (e) {
+    throw new Error('网络异常，下载失败，请稍后重试')
+  }
+
+  // 后端在异常（未登录 / 无权限 / 未过审 / 图片不存在 / 参数错误）时返回 JSON 错误体
+  if (!resp.ok) {
+    let reason = `下载失败（${resp.status}）`
+    try {
+      const errBody = await resp.json()
+      if (errBody?.message) reason = errBody.message
+    } catch (_) {
+      /* 非 JSON 错误体，沿用状态码提示 */
+    }
+    throw new Error(reason)
+  }
+
+  const blob = await resp.blob()
+  // 优先用后端声明的文件名；缺失时回退到前端记录的字段
+  const filename =
+    parseDispositionFilename(resp.headers.get('content-disposition')) ||
+    buildFallbackName(picture)
+
+  const blobUrl = URL.createObjectURL(blob)
+  const a = document.createElement('a')
+  a.href = blobUrl
+  a.download = filename
+  document.body.appendChild(a)
+  a.click()
+  document.body.removeChild(a)
+  setTimeout(() => URL.revokeObjectURL(blobUrl), 1500)
+}
+
+/**
+ * 从 Content-Disposition 头解析出文件名。
+ * 兼容 filename*=UTF-8''<编码> 与 filename="<名称>" 两种写法。
+ */
+function parseDispositionFilename(disposition) {
+  if (!disposition) return ''
+  const star = disposition.match(/filename\*\s*=\s*(?:[^']*'')([^;]+)/i)
+  if (star?.[1]) {
+    try {
+      return decodeURIComponent(star[1].trim())
+    } catch (_) {
+      /* 解码失败，继续尝试普通 filename */
+    }
+  }
+  const plain = disposition.match(/filename\s*=\s*("?)([^;"]+)\1/i)
+  if (plain?.[2]) return plain[2].trim()
+  return ''
+}
+
+/** 后端未声明文件名时的兜底命名：picName + 实际格式 */
+function buildFallbackName(picture) {
+  const name = picture?.picName || 'picture'
+  const ext = picture?.picFormat ? String(picture.picFormat).toLowerCase() : ''
+  return ext && !name.toLowerCase().endsWith('.' + ext) ? `${name}.${ext}` : name
+}
+
+/** 复制到剪贴板 */
+export async function copyText(text) {
+  if (!text) return false
+  try {
+    if (navigator.clipboard?.writeText) {
+      await navigator.clipboard.writeText(text)
+      return true
+    }
+  } catch (e) {
+    /* 降级处理 */
+  }
+  const ta = document.createElement('textarea')
+  ta.value = text
+  ta.style.position = 'fixed'
+  ta.style.opacity = '0'
+  document.body.appendChild(ta)
+  ta.select()
+  const ok = document.execCommand('copy')
+  document.body.removeChild(ta)
+  return ok
+}
