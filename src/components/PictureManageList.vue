@@ -164,6 +164,9 @@
               <template v-else-if="column.key === 'action'">
                 <a-space :size="4">
                   <a-button type="link" size="small" @click="openEdit(record)">编辑</a-button>
+                  <a-button v-if="enableCanvasEdit" type="link" size="small" @click="openCanvasEdit(record)">
+                    图片编辑
+                  </a-button>
                   <a-popconfirm
                     title="确认删除这张图片？"
                     ok-text="删除"
@@ -191,6 +194,7 @@
                   @detail="goDetail"
                   @download="handleDownload"
                   @edit="openEdit"
+                  @canvas-edit="openCanvasEdit"
                   @delete="confirmDelete"
                   @check-change="onCheckChange"
                 />
@@ -227,6 +231,14 @@
       :picture="current"
       :submitting="submitting"
       @submit="handleEditSubmit"
+    />
+
+    <!-- 画布编辑器：多人协作的图片编辑，保存后才真正覆盖原图 -->
+    <PictureEditorModal
+      v-model:open="canvasOpen"
+      :picture="current"
+      :collaborative="collaborative"
+      @saved="onCanvasSaved"
     />
 
     <!-- 批量修改弹窗 -->
@@ -282,6 +294,7 @@ import {
 import PictureGrid from '@/components/PictureGrid.vue'
 import PictureCard from '@/components/PictureCard.vue'
 import PictureEditModal from '@/components/PictureEditModal.vue'
+import PictureEditorModal from '@/components/PictureEditorModal.vue'
 import ColorPicker from '@/components/ColorPicker.vue'
 import { batchDeletePicture, batchEditPicture, deletePicture, updatePicture } from '@/api/picture'
 import {
@@ -292,6 +305,7 @@ import {
   SORT_ORDER
 } from '@/constants'
 import { useDictStore } from '@/stores/dict'
+import { useSpaceStore } from '@/stores/space'
 import { downloadPicture, formatSize, formatTime, normalizeColor, reviewMeta } from '@/utils/format'
 import { displayUrl } from '@/utils/image'
 const props = defineProps({
@@ -310,16 +324,42 @@ const props = defineProps({
    * 随查询一起提交的固定参数，例如私有图库需要的 { spaceId }。
    * 切换空间时父页面改这个对象即可，组件内部不感知空间概念。
    */
-  extraParams: { type: Object, default: () => ({}) }
+  extraParams: { type: Object, default: () => ({}) },
+  /**
+   * 是否提供「图片编辑」（画布编辑）入口。
+   * 默认开启；团队空间下浏览者（viewer）没有编辑权限，由页面按空间角色关闭。
+   */
+  enableCanvasEdit: { type: Boolean, default: true },
+  /**
+   * 画布编辑器是否开启多人协作（只有团队空间的图片需要）。
+   * 默认关闭：其余场景（公共图库 / 个人空间 / 审核页）的图片自己编辑就够了，
+   * 不需要协作者列表、远端光标这类信息。
+   */
+  collaborative: { type: Boolean, default: false }
 })
 
 const emit = defineEmits(['changed'])
 
 const router = useRouter()
 const dictStore = useDictStore()
+const spaceStore = useSpaceStore()
 
 const categoryOptions = computed(() => dictStore.categoryOptions)
 const tagOptions = computed(() => dictStore.tagOptions)
+
+/**
+ * 画布编辑器是否带协作（团队空间的图片才需要）
+ *
+ * 两个信号取「或」：页面显式传的 `collaborative`，以及按列表实际查询的 spaceId
+ * 判断它是不是我的团队空间之一。后者是兜底——只靠页面传值时，一旦空间 store 的
+ * 当前类型没跟上（直接进页面 / 缓存回填），团队空间的图片就会漏掉协作能力。
+ */
+const collaborative = computed(() => {
+  if (props.collaborative) return true
+  const spaceId = props.extraParams?.spaceId
+  if (!spaceId) return false
+  return spaceStore.teams.some((item) => item.id === String(spaceId))
+})
 
 const pictures = ref([])
 const total = ref(0)
@@ -329,6 +369,7 @@ const selectedIds = ref([])
 const view = ref(props.defaultView)
 
 const editOpen = ref(false)
+const canvasOpen = ref(false)
 const batchOpen = ref(false)
 const current = ref(null)
 
@@ -462,6 +503,18 @@ async function handleDownload(pic) {
 function openEdit(pic) {
   current.value = pic
   editOpen.value = true
+}
+
+function openCanvasEdit(pic) {
+  current.value = pic
+  canvasOpen.value = true
+}
+
+/** 画布保存后刷新列表并同步空间容量（图片体积可能变了） */
+async function onCanvasSaved() {
+  canvasOpen.value = false
+  await fetchList()
+  emit('changed', total.value)
 }
 
 async function handleEditSubmit(values) {

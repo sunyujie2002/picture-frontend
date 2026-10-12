@@ -187,6 +187,8 @@
           :extra-params="{ spaceId: spaceStore.currentId }"
           default-view="card"
           empty-title="空间里还没有图片"
+          :enable-canvas-edit="spaceStore.canEdit"
+          :collaborative="spaceStore.isTeam"
           @changed="onListChanged"
         >
           <template #empty-action>

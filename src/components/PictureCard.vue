@@ -33,6 +33,11 @@
             </button>
           </a-tooltip>
           <template v-if="editable">
+            <a-tooltip title="图片编辑">
+              <button class="act" @click="emit('canvas-edit', picture)">
+                <HighlightOutlined />
+              </button>
+            </a-tooltip>
             <a-tooltip title="编辑">
               <button class="act" @click="emit('edit', picture)">
                 <EditOutlined />
@@ -79,6 +84,7 @@ import {
   DownloadOutlined,
   EditOutlined,
   EyeOutlined,
+  HighlightOutlined,
   PictureOutlined
 } from '@ant-design/icons-vue'
 import { useDictStore } from '@/stores/dict'
@@ -95,7 +101,7 @@ const props = defineProps({
   showTime: { type: Boolean, default: false }
 })
 
-const emit = defineEmits(['click', 'detail', 'download', 'edit', 'delete', 'check-change'])
+const emit = defineEmits(['click', 'detail', 'download', 'edit', 'canvas-edit', 'delete', 'check-change'])
 
 const failed = ref(false)
 
