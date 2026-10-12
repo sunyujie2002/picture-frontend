@@ -4,11 +4,11 @@ import Antd from 'ant-design-vue'
 import 'ant-design-vue/dist/reset.css'
 import dayjs from 'dayjs'
 import 'dayjs/locale/zh-cn'
+import './styles/global.less'
 
 import App from './App.vue'
 import router from './router'
 import { useThemeStore } from './stores/theme'
-import './styles/global.less'
 
 dayjs.locale('zh-cn')
 

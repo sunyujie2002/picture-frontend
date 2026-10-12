@@ -79,7 +79,7 @@ const year = new Date().getFullYear()
   flex-direction: column;
   justify-content: space-between;
   color: #fff;
-  background: var(--brand-panel-bg);
+  background: var(--brand-panel-bg, linear-gradient(150deg, #4f46e5 0%, #5b53f0 45%, #7c3aed 100%));
 }
 
 .glow {
@@ -94,7 +94,7 @@ const year = new Date().getFullYear()
   height: 420px;
   top: -140px;
   right: -120px;
-  background: radial-gradient(circle, var(--brand-panel-glow-a), transparent 65%);
+  background: radial-gradient(circle, var(--brand-panel-glow-a, rgba(255, 255, 255, 0.22)), transparent 65%);
 }
 
 .glow-b {
@@ -102,7 +102,7 @@ const year = new Date().getFullYear()
   height: 320px;
   bottom: -100px;
   left: -80px;
-  background: radial-gradient(circle, var(--brand-panel-glow-b), transparent 65%);
+  background: radial-gradient(circle, var(--brand-panel-glow-b, rgba(129, 140, 248, 0.5)), transparent 65%);
 }
 
 .glow-c {
@@ -110,7 +110,7 @@ const year = new Date().getFullYear()
   height: 180px;
   bottom: 120px;
   right: 80px;
-  background: radial-gradient(circle, var(--brand-panel-glow-c), transparent 65%);
+  background: radial-gradient(circle, var(--brand-panel-glow-c, rgba(236, 233, 254, 0.28)), transparent 65%);
 }
 
 .brand-body {
