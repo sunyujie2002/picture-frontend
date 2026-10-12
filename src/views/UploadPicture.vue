@@ -44,7 +44,7 @@
               >
                 抓取并上传
               </a-button>
-              <p class="pane-hint">图片会被转存到对象存储，并自动解析尺寸、体积与主色调。</p>
+              <p class="pane-hint">图片会被保存到云端，并自动解析尺寸、体积与主色调。</p>
             </div>
           </a-tab-pane>
 
@@ -120,7 +120,7 @@
               <div class="thumb-sub">
                 <span class="color-dot" :style="{ background: uploadedColor || '#c9cdd8' }" />
                 {{ uploadedColor || '未识别主色调' }}
-                <span class="server-tag">服务端解析</span>
+                <span class="server-tag">自动解析</span>
               </div>
             </div>
           </div>

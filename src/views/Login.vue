@@ -47,11 +47,6 @@
         登录
       </a-button>
     </a-form>
-
-    <div class="auth-tip">
-      <a-tag color="blue">提示</a-tag>
-      <span>默认管理员账号可在数据库中将 user_role 改为 admin 后登录。</span>
-    </div>
   </AuthLayout>
 </template>
 
@@ -132,19 +127,5 @@ async function handleSubmit() {
   height: 42px;
   margin-top: 4px;
   font-weight: 500;
-}
-
-.auth-tip {
-  margin-top: 22px;
-  padding: 12px 14px;
-  border-radius: var(--radius);
-  background: #f7f8fc;
-  border: 1px solid var(--border);
-  font-size: 13px;
-  line-height: 1.6;
-  color: var(--text-secondary);
-  display: flex;
-  gap: 8px;
-  align-items: flex-start;
 }
 </style>

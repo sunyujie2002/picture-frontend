@@ -24,7 +24,7 @@
           <div class="preview-sub">
             <span class="dot" :style="{ background: color || '#c9cdd8' }" />
             {{ color || '未识别主色调' }}
-            <span class="server-tag">服务端解析</span>
+            <span class="server-tag">自动解析</span>
           </div>
         </div>
         <div class="preview-actions">
@@ -60,8 +60,8 @@
           <a-button :loading="replacing" :disabled="!fileUrl" @click="handleReplaceUrl">抓取并替换</a-button>
         </div>
         <p class="replace-hint">
-          新图片会先暂存在临时目录，点击底部「保存」后才正式替换原图并删除旧文件；
-          尺寸、体积、主色调将在替换时由服务端重新解析。
+          新图片会先暂存，点击底部「保存」后才正式替换原图；
+          尺寸、体积、主色调将在替换时自动重新解析。
         </p>
       </div>
 
@@ -109,7 +109,7 @@
       </a-row>
 
       <div class="readonly-note">
-        主色调、尺寸、体积与格式由服务端在上传时解析，不提供修改。
+        主色调、尺寸、体积与格式在上传时自动解析，不提供修改。
       </div>
     </a-form>
   </a-modal>

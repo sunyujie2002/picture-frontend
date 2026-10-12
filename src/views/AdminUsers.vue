@@ -107,7 +107,7 @@
         type="info"
         show-icon
         message="新增用户只设置账号、昵称与角色"
-        description="初始密码由后端固定为 123456，账号与昵称均不可与他人重复；头像与简介请在创建后再编辑。"
+        description="新用户的初始密码为 123456，创建后请提醒对方尽快修改；账号与昵称不可与他人重复。"
       />
 
       <a-form ref="formRef" :model="form" :rules="rules" layout="vertical">

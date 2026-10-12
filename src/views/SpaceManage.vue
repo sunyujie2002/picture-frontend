@@ -54,7 +54,7 @@
             <ReloadOutlined />
           </div>
           <h2 class="card-title">暂时无法确认空间状态</h2>
-          <p class="create-desc">请确认已登录并连接后端后重试。</p>
+          <p class="create-desc">请确认已登录，然后重新检测。</p>
           <a-button size="large" @click="refresh">重新检测</a-button>
         </div>
       </section>
@@ -281,7 +281,7 @@
         type="info"
         show-icon
         message="升级说明"
-        description="升级会提高空间总容量，原图片不受影响。该操作依赖后端放开「本人升级自己空间」的权限校验。"
+        description="升级会提高空间总容量，原图片不受影响。"
       />
     </a-modal>
   </div>
@@ -359,8 +359,8 @@ const namePlaceholder = computed(() => (isCreateTeam.value ? '例如：设计组
 
 const createHint = computed(() =>
   isCreateTeam.value
-    ? '留空则由后端自动命名为「你的昵称的团队空间」。每个用户仅能创建一个团队空间。'
-    : '留空则由后端自动命名为「你的昵称的个人空间」。每个用户仅能创建一个个人空间。'
+    ? '留空则自动命名为「你的昵称的团队空间」。每个用户仅能创建一个团队空间。'
+    : '留空则自动命名为「你的昵称的个人空间」。每个用户仅能创建一个个人空间。'
 )
 
 const progressColor = computed(() => {

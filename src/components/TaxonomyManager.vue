@@ -143,7 +143,7 @@ const api = computed(() =>
 
 const nameHint = computed(() =>
   isCategory.value
-    ? '分类名称全局唯一，重名会被后端拒绝；删除时若仍有图片引用该分类，后端同样会拒绝。'
+    ? '分类名称不能与其他分类重名；若分类下还有图片，需要先调整这些图片的分类才能删除。'
     : '标签名称全局唯一；删除标签会同步清理图片与标签的关联关系。'
 )
 
@@ -231,7 +231,7 @@ function handleDelete(record) {
   Modal.confirm({
     title: `确认删除${label.value}「${record[nameKey.value]}」？`,
     content: isCategory.value
-      ? '删除后不可恢复。若该分类下仍有图片，后端会拒绝删除，需要先调整这些图片的分类。'
+      ? '删除后不可恢复。若该分类下仍有图片，请先调整这些图片的分类。'
       : '删除后不可恢复，同时会清理所有图片与该标签的关联。',
     okText: '删除',
     okType: 'danger',

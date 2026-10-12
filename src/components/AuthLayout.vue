@@ -6,12 +6,12 @@
       <div class="glow glow-c" />
 
       <div class="brand-body">
-        <div class="brand-logo">
+        <router-link to="/" class="brand-logo">
           <span class="mark">
             <PictureOutlined />
           </span>
           <span class="name">图库 · PictureHub</span>
-        </div>
+        </router-link>
 
         <h1 class="brand-title">{{ title }}</h1>
         <p class="brand-desc">{{ description }}</p>
@@ -29,7 +29,9 @@
 
     <section class="panel">
       <div class="panel-card">
-        <slot />
+        <div class="card-body">
+          <slot />
+        </div>
       </div>
     </section>
   </div>
@@ -118,6 +120,13 @@ const year = new Date().getFullYear()
   align-items: center;
   gap: 10px;
   margin-bottom: 48px;
+  color: inherit;
+  text-decoration: none;
+  transition: opacity 0.2s ease;
+}
+
+.brand-logo:hover {
+  opacity: 0.85;
 }
 
 .mark {
@@ -197,6 +206,11 @@ const year = new Date().getFullYear()
 .panel-card {
   width: 100%;
   max-width: 400px;
+}
+
+.card-body {
+  /* 卡片自身带内边距，这里只做插槽容器，避免撑破既有间距 */
+  display: block;
 }
 
 @media (max-width: 960px) {

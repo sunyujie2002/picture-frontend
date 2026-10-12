@@ -80,10 +80,7 @@
                     <a-tag v-if="pendingAvatar" color="blue">新头像待保存</a-tag>
                     <span v-else class="text-tertiary">当前头像已生效</span>
                   </div>
-                  <div class="field-hint">
-                    点击左侧「更换头像」上传，保存后由后端迁移到你的头像目录。
-                  </div>
-                  <div v-if="pendingAvatar" class="field-hint mono">临时路径：{{ pendingAvatar }}</div>
+                  <div class="field-hint">点击左侧「更换头像」上传，保存后立即生效。</div>
                 </div>
               </div>
             </a-form-item>
@@ -236,7 +233,7 @@ async function handleAvatarUpload(file) {
     const key = vo?.url || ''
     const expected = `temp/image/${userStore.userId}/`
     if (!key.startsWith(expected)) {
-      message.error('头像上传返回路径异常，请重试')
+      message.error('头像上传失败，请重试')
       return false
     }
     pendingAvatar.value = key
@@ -427,11 +424,6 @@ onMounted(async () => {
   font-size: 12px;
   line-height: 1.6;
   color: var(--text-tertiary);
-}
-
-.field-hint.mono {
-  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
-  word-break: break-all;
 }
 
 .avatar-field {
