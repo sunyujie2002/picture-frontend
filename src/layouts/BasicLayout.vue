@@ -84,6 +84,7 @@ import { useRoute, useRouter } from 'vue-router'
 import { Modal } from 'ant-design-vue'
 import {
   AppstoreOutlined,
+  BarChartOutlined,
   CloudUploadOutlined,
   DatabaseOutlined,
   DownOutlined,
@@ -130,7 +131,8 @@ const menuItems = computed(() => {
         { key: '/admin/users', icon: () => h(TeamOutlined), label: '用户管理' },
         { key: '/admin/categories', icon: () => h(AppstoreOutlined), label: '分类管理' },
         { key: '/admin/tags', icon: () => h(TagsOutlined), label: '标签管理' },
-        { key: '/admin/spaces', icon: () => h(FolderOpenOutlined), label: '空间管理' }
+        { key: '/admin/spaces', icon: () => h(FolderOpenOutlined), label: '空间管理' },
+        { key: '/admin/ranking', icon: () => h(BarChartOutlined), label: '空间用量排行' }
       ]
     })
   }

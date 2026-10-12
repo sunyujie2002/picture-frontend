@@ -38,6 +38,12 @@
         </template>
         创建我的团队空间
       </a-button>
+      <a-button v-if="spaceStore.hasCurrent" size="small" @click="goAnalysis">
+        <template #icon>
+          <BarChartOutlined />
+        </template>
+        数据分析
+      </a-button>
     </div>
 
     <a-spin :spinning="checking">
@@ -286,6 +292,7 @@ import { computed, onMounted, reactive, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { message } from 'ant-design-vue'
 import {
+  BarChartOutlined,
   CloudUploadOutlined,
   DatabaseOutlined,
   EditOutlined,
@@ -399,6 +406,12 @@ function handleSwitch(value) {
   createMode.value = ''
   spaceStore.setCurrent(value, userStore.userId)
   syncMembers()
+}
+
+/** 跳到数据分析页，默认分析当前正在查看的空间 */
+function goAnalysis() {
+  const spaceId = spaceStore.currentId
+  router.push(spaceId ? { path: '/space/analysis', query: { spaceId } } : '/space/analysis')
 }
 
 /** 打开「创建团队空间」表单（此时切换器仍停在个人空间，创建成功后会自动切过去） */

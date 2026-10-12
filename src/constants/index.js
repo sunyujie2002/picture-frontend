@@ -144,3 +144,53 @@ export const SORT_ORDER = {
 /** 分页默认值 */
 export const DEFAULT_PAGE = { pageNum: 1, pageSize: 20 }
 export const PAGE_SIZE_OPTIONS = ['12', '20', '40', '80']
+
+/**
+ * 分析范围（AnalysisRequest.scope，对应后端 AnalysisScopeEnum）
+ *
+ * - PUBLIC_SPACE：公共图库（space_id 为空的图），仅管理员
+ * - ALL_SPACE：所有用户空间（space_id 非空的图），仅管理员
+ * - SINGLE_SPACE：某个空间，spaceId 必填；普通用户只能传自己的空间
+ */
+export const ANALYSIS_SCOPE = {
+  PUBLIC_SPACE: 'PUBLIC_SPACE',
+  ALL_SPACE: 'ALL_SPACE',
+  SINGLE_SPACE: 'SINGLE_SPACE'
+}
+
+/** 分析范围的中文名（后端无权限校验时的兜底展示） */
+export const ANALYSIS_SCOPE_LABEL = {
+  PUBLIC_SPACE: '公共图库',
+  ALL_SPACE: '所有用户空间',
+  SINGLE_SPACE: '指定空间'
+}
+
+/** 分析指标：看图片数量还是占用空间（两个分析接口都返回这两项） */
+export const ANALYSIS_METRIC = {
+  COUNT: 'pictureCount',
+  SIZE: 'totalSize'
+}
+
+export const ANALYSIS_METRIC_OPTIONS = [
+  { value: ANALYSIS_METRIC.COUNT, label: '图片数量' },
+  { value: ANALYSIS_METRIC.SIZE, label: '占用空间' }
+]
+
+/**
+ * 上传行为分析的时间范围（只有该接口传时间参数，对应后端 TrendTimeRangeEnum）
+ *
+ * - WEEK：本周一至周日，按天
+ * - MONTH：本月 1 号至月末，按天
+ * - YEAR：本年 1 至 12 月，按月
+ */
+export const TREND_TIME_RANGE = {
+  WEEK: 'WEEK',
+  MONTH: 'MONTH',
+  YEAR: 'YEAR'
+}
+
+export const TREND_TIME_RANGE_OPTIONS = [
+  { value: TREND_TIME_RANGE.WEEK, label: '本周' },
+  { value: TREND_TIME_RANGE.MONTH, label: '本月' },
+  { value: TREND_TIME_RANGE.YEAR, label: '本年' }
+]

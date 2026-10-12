@@ -55,6 +55,12 @@ const routes = [
         redirect: '/space'
       },
       {
+        path: 'space/analysis',
+        name: 'space-analysis',
+        component: () => import('@/views/SpaceAnalysis.vue'),
+        meta: { title: '数据分析', auth: true }
+      },
+      {
         path: 'profile',
         name: 'profile',
         component: () => import('@/views/Profile.vue'),
@@ -89,6 +95,12 @@ const routes = [
         name: 'admin-spaces',
         component: () => import('@/views/AdminSpaces.vue'),
         meta: { title: '空间管理', auth: true, admin: true }
+      },
+      {
+        path: 'admin/ranking',
+        name: 'admin-ranking',
+        component: () => import('@/views/AdminRanking.vue'),
+        meta: { title: '空间用量排行', auth: true, admin: true }
       }
     ]
   },
