@@ -139,15 +139,10 @@ const menuItems = computed(() => {
   return items
 })
 
-// 登录后预热分类 / 标签字典，让筛选、表单与表格展示用得上真实名称
-watch(
-  () => userStore.isLogin,
-  (isLogin) => {
-    if (isLogin) dictStore.load()
-    else dictStore.reset()
-  },
-  { immediate: true }
-)
+// 预热分类 / 标签字典，让筛选、表单与表格展示用得上真实名称。
+// 这两个接口已对游客放行，游客逛公共图库同样要用，所以不做登录态判断；
+// 需要登录的接口交给后端返回 40100，由请求拦截器统一提示并跳转。
+dictStore.load()
 
 // 切换用户时载入其空间本地记录（真正的空间状态由各页面按需探测）
 watch(
@@ -210,12 +205,14 @@ function onScroll() {
   scrolled.value = window.scrollY > 8
 }
 
-// token 失效（后端返回 40100 / HTTP 401）时统一清理并跳转登录
+// token 失效（后端返回 40100 / HTTP 401）时统一清理并跳转登录。
+// 不区分当前页面是否需要登录：错误提示由请求拦截器统一弹出（用的是后端返回的 message），
+// 这里只负责跳转，前端不再自行预判哪些操作需要登录。
 function handleUnauthorized() {
   userStore.clearLocal()
-  if (route.meta.auth || route.meta.admin) {
-    router.push({ name: 'login', query: { redirect: route.fullPath } })
-  }
+  // 已在登录 / 注册页时不再跳转，避免死循环
+  if (route.name === 'login' || route.name === 'register') return
+  router.push({ name: 'login', query: { redirect: route.fullPath } })
 }
 
 onMounted(() => {

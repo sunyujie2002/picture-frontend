@@ -399,7 +399,6 @@ async function handleSubmit() {
 }
 
 onMounted(async () => {
-  if (!userStore.isLogin) return
   dictStore.load()
   // 探测个人空间与团队空间，决定「私有空间」是否可选以及可入库的空间列表
   if (!userStore.userId) await userStore.fetchUserInfo()

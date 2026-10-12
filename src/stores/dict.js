@@ -11,8 +11,8 @@ let pendingLoad = null
  * 后端只返回 categoryId 与 tagId，名称需要单独查询，这里统一缓存，
  * 让筛选、表单、表格展示都能用真实名称而不是裸 ID。
  *
- * 注意：/category/queryList 与 /tag/queryList 仍然被 LoginInterceptor 覆盖，
- * 未登录时接口会返回 40100，因此这里只在已登录时拉取，未登录保持空字典。
+ * 注意：/category/queryList 与 /tag/queryList 已加入后端登录白名单，游客也可拉取；
+ * 后续若后端收紧白名单，这里拉取失败也只是保持空字典（展示层回退成 #id），不影响页面。
  */
 export const useDictStore = defineStore('dict', {
   state: () => ({

@@ -261,7 +261,7 @@ watch(
 )
 
 onMounted(() => {
-  if (userStore.isLogin) dictStore.load()
+  dictStore.load()
 })
 
 function close() {

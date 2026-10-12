@@ -1,5 +1,4 @@
 import { createRouter, createWebHistory } from 'vue-router'
-import { message } from 'ant-design-vue'
 import { useUserStore } from '@/stores/user'
 
 const routes = [
@@ -35,19 +34,19 @@ const routes = [
         path: 'upload',
         name: 'upload',
         component: () => import('@/views/UploadPicture.vue'),
-        meta: { title: '上传图片', auth: true }
+        meta: { title: '上传图片' }
       },
       {
         path: 'my',
         name: 'my-pictures',
         component: () => import('@/views/MyPictures.vue'),
-        meta: { title: '图片管理', auth: true }
+        meta: { title: '图片管理' }
       },
       {
         path: 'space',
         name: 'space',
         component: () => import('@/views/SpaceManage.vue'),
-        meta: { title: '我的空间', auth: true }
+        meta: { title: '我的空间' }
       },
       {
         // 私有图库已并入「我的空间」，空间页在概览下方直接展示私有图片列表
@@ -58,49 +57,49 @@ const routes = [
         path: 'space/analysis',
         name: 'space-analysis',
         component: () => import('@/views/SpaceAnalysis.vue'),
-        meta: { title: '数据分析', auth: true }
+        meta: { title: '数据分析' }
       },
       {
         path: 'profile',
         name: 'profile',
         component: () => import('@/views/Profile.vue'),
-        meta: { title: '个人中心', auth: true }
+        meta: { title: '个人中心' }
       },
       {
         path: 'admin/pictures',
         name: 'admin-pictures',
         component: () => import('@/views/AdminPictures.vue'),
-        meta: { title: '图片审核管理', auth: true, admin: true }
+        meta: { title: '图片审核管理', admin: true }
       },
       {
         path: 'admin/users',
         name: 'admin-users',
         component: () => import('@/views/AdminUsers.vue'),
-        meta: { title: '用户管理', auth: true, admin: true }
+        meta: { title: '用户管理', admin: true }
       },
       {
         path: 'admin/categories',
         name: 'admin-categories',
         component: () => import('@/views/AdminCategories.vue'),
-        meta: { title: '分类管理', auth: true, admin: true }
+        meta: { title: '分类管理', admin: true }
       },
       {
         path: 'admin/tags',
         name: 'admin-tags',
         component: () => import('@/views/AdminTags.vue'),
-        meta: { title: '标签管理', auth: true, admin: true }
+        meta: { title: '标签管理', admin: true }
       },
       {
         path: 'admin/spaces',
         name: 'admin-spaces',
         component: () => import('@/views/AdminSpaces.vue'),
-        meta: { title: '空间管理', auth: true, admin: true }
+        meta: { title: '空间管理', admin: true }
       },
       {
         path: 'admin/ranking',
         name: 'admin-ranking',
         component: () => import('@/views/AdminRanking.vue'),
-        meta: { title: '空间用量排行', auth: true, admin: true }
+        meta: { title: '空间用量排行', admin: true }
       }
     ]
   },
@@ -126,11 +125,8 @@ router.beforeEach(async (to) => {
     await userStore.fetchUserInfo()
   }
 
-  if (to.meta.auth && !userStore.isLogin) {
-    message.warning('请先登录后再访问该页面')
-    return { name: 'login', query: { redirect: to.fullPath } }
-  }
-
+  // 登录态不在前端拦截：统一由后端接口校验，返回 40100 时
+  // BasicLayout 统一清登录态并跳转登录页，接口放行范围只改后端白名单即可
   if (to.meta.admin && !userStore.isAdmin) {
     return { name: 'home' }
   }

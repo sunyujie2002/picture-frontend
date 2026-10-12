@@ -116,13 +116,7 @@
     <!-- 结果区 -->
     <section class="result">
       <a-spin :spinning="loading" tip="加载中…">
-        <template v-if="loginRequired">
-          <a-empty class="state-box" description="浏览图库需要登录">
-            <a-button type="primary" @click="goLogin">去登录</a-button>
-          </a-empty>
-        </template>
-
-        <template v-else-if="pictures.length">
+        <template v-if="pictures.length">
           <PictureGrid :items="pictures" :gap="18">
             <template #default="{ item }">
               <PictureCard
@@ -187,7 +181,6 @@ const sortOrderOptions = [
 const pictures = ref([])
 const total = ref(0)
 const loading = ref(false)
-const loginRequired = ref(false)
 
 const query = reactive({
   picName: '',
@@ -257,18 +250,14 @@ function buildParams() {
 
 async function fetchList() {
   loading.value = true
-  loginRequired.value = false
   try {
     const page = await queryHomePictureList(buildParams())
     pictures.value = page?.records || []
     total.value = Number(page?.total || 0)
   } catch (e) {
+    // 错误提示与登录跳转由请求拦截器统一处理，这里只清空列表
     pictures.value = []
     total.value = 0
-    // 后端 LoginInterceptor 对 /picture/** 一律要求登录，未登录时给出明确引导
-    if (e?.code === 40100 || e?.response?.status === 401) {
-      loginRequired.value = true
-    }
   } finally {
     loading.value = false
   }
@@ -325,10 +314,6 @@ function goUpload() {
   router.push('/upload')
 }
 
-function goLogin() {
-  router.push({ name: 'login', query: { redirect: '/', } })
-}
-
 async function handleDownload(picture) {
   try {
     await downloadPicture(picture)
@@ -339,8 +324,8 @@ async function handleDownload(picture) {
 }
 
 onMounted(() => {
-  // 游客不拉字典：/category、/tag 的 queryList 同样要求登录，免打扰
-  if (userStore.isLogin) dictStore.load()
+  // 分类 / 标签查询已对游客放行，游客也能按分类筛选公共图库
+  dictStore.load()
   fetchList()
 })
 </script>
