@@ -86,9 +86,9 @@ function clear() {
   gap: 8px;
   height: 38px;
   padding: 0 12px;
-  border: 1px solid #d9d9d9;
+  border: 1px solid var(--border);
   border-radius: 8px;
-  background: #fff;
+  background: var(--surface);
   cursor: pointer;
   color: var(--text);
   transition: border-color 0.18s ease, box-shadow 0.18s ease;

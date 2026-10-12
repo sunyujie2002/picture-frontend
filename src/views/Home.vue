@@ -328,9 +328,9 @@ onMounted(() => {
 .hero {
   position: relative;
   overflow: hidden;
-  border: 1px solid #e6e8f3;
+  border: 1px solid var(--border);
   border-radius: 20px;
-  background: linear-gradient(130deg, #eef0ff 0%, #f6f1ff 45%, #ffffff 100%);
+  background: var(--hero-bg);
   padding: 34px 34px 30px;
   margin-bottom: 20px;
 }
@@ -354,7 +354,7 @@ onMounted(() => {
   margin: 10px 0 0;
   font-size: 14px;
   line-height: 1.7;
-  color: #5c6273;
+  color: var(--text-secondary);
 }
 
 .hero-search {
@@ -372,16 +372,16 @@ onMounted(() => {
 
 .hot-label {
   font-size: 12px;
-  color: #8b90a0;
+  color: var(--text-tertiary);
 }
 
 .hot-chip {
   font-size: 12px;
   padding: 3px 10px;
   border-radius: 999px;
-  background: rgba(255, 255, 255, 0.85);
-  border: 1px solid #e2e5f0;
-  color: #5c6273;
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  color: var(--text-secondary);
   cursor: pointer;
   transition: all 0.16s ease;
 }

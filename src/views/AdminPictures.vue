@@ -459,7 +459,7 @@ onMounted(() => {
   margin-top: 10px;
   padding: 10px 14px;
   border-radius: 10px;
-  background: #f7f8fc;
+  background: var(--surface-2);
   border: 1px solid var(--border);
   font-size: 13px;
   line-height: 1.7;
@@ -501,13 +501,13 @@ onMounted(() => {
   margin-bottom: 16px;
   border-radius: var(--radius);
   background: var(--brand-soft);
-  border: 1px solid #d7d9fb;
+  border: 1px solid var(--border);
 }
 
 .batch-count {
   font-size: 13px;
   font-weight: 550;
-  color: #3730a3;
+  color: var(--tag-color);
 }
 
 .table-card {
@@ -516,12 +516,12 @@ onMounted(() => {
 
 .taxonomy-tag {
   margin: 0;
-  font-size: 12px;
+  font-size:12px;
   padding: 1px 8px;
   border-radius: 6px;
-  background: #f2f3ff;
-  border: 1px solid #e0e2f5;
-  color: #4338ca;
+  background: var(--tag-bg);
+  border: 1px solid var(--border);
+  color: var(--tag-color);
 }
 
 .cell-thumb {

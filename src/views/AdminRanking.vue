@@ -380,7 +380,7 @@ loadAll()
   line-height: 22px;
   text-align: center;
   border-radius: 11px;
-  background: #f1f2f6;
+  background: var(--surface-2);
   color: var(--text-secondary);
   font-size: 12px;
 

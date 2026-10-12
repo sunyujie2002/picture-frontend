@@ -16,7 +16,7 @@
       size="large"
       @finish="handleSubmit"
     >
-      <a-form-item name="userAccount" label="账号">
+      <a-form-item name="userAccount">
         <a-input
           v-model:value="form.userAccount"
           placeholder="请输入账号"
@@ -29,7 +29,7 @@
         </a-input>
       </a-form-item>
 
-      <a-form-item name="userPassword" label="密码">
+      <a-form-item name="userPassword">
         <a-input-password
           v-model:value="form.userPassword"
           placeholder="请输入密码"
@@ -124,8 +124,7 @@ async function handleSubmit() {
 }
 
 .submit-btn {
-  height: 42px;
-  margin-top: 4px;
-  font-weight: 500;
+  margin-top: 8px;
+  font-weight: 600;
 }
 </style>

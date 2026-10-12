@@ -148,7 +148,7 @@ function onCheckChange(e) {
 <style scoped lang="less">
 .pic-card {
   position: relative;
-  background: #fff;
+  background: var(--surface);
   border: 1px solid var(--border);
   border-radius: var(--radius);
   overflow: hidden;
@@ -157,7 +157,7 @@ function onCheckChange(e) {
 }
 
 .pic-card:hover {
-  border-color: #d8dbe6;
+  border-color: var(--border-strong);
   box-shadow: var(--shadow-lg);
   transform: translateY(-2px);
 }
@@ -170,7 +170,7 @@ function onCheckChange(e) {
 .thumb {
   position: relative;
   width: 100%;
-  background: linear-gradient(135deg, #f4f5f8, #eceef4);
+  background: var(--surface-2);
   overflow: hidden;
 }
 
@@ -187,7 +187,7 @@ function onCheckChange(e) {
   display: grid;
   place-items: center;
   font-size: 26px;
-  color: #c3c7d2;
+  color: var(--text-tertiary);
 }
 
 .check {
@@ -197,7 +197,7 @@ function onCheckChange(e) {
   z-index: 3;
   padding: 3px;
   border-radius: 8px;
-  background: rgba(255, 255, 255, 0.92);
+  background: var(--chip-bg);
   line-height: 1;
 }
 
@@ -209,7 +209,7 @@ function onCheckChange(e) {
   width: 18px;
   height: 18px;
   border-radius: 6px;
-  border: 2px solid rgba(255, 255, 255, 0.9);
+  border: 2px solid var(--surface);
   box-shadow: 0 1px 4px rgba(0, 0, 0, 0.16);
 }
 
@@ -252,14 +252,14 @@ function onCheckChange(e) {
   display: grid;
   place-items: center;
   font-size: 15px;
-  color: #1f2430;
-  background: rgba(255, 255, 255, 0.94);
+  color: var(--text);
+  background: var(--chip-bg);
   cursor: pointer;
   transition: background 0.16s ease, transform 0.16s ease;
 }
 
 .act:hover {
-  background: #fff;
+  background: var(--surface);
   transform: translateY(-2px);
 }
 
@@ -291,7 +291,7 @@ function onCheckChange(e) {
   font-size: 11px;
   padding: 1px 6px;
   border-radius: 5px;
-  background: #f3f4f8;
+  background: var(--surface-2);
   color: var(--text-tertiary);
 }
 
@@ -308,7 +308,7 @@ function onCheckChange(e) {
 
 .sep {
   margin: 0 5px;
-  color: #d3d7e0;
+  color: var(--border-strong);
 }
 
 .tag-row {
@@ -322,7 +322,7 @@ function onCheckChange(e) {
   font-size: 11px;
   padding: 1px 6px;
   border-radius: 5px;
-  background: #f3f4f8;
+  background: var(--surface-2);
   color: var(--text-secondary);
 }
 </style>

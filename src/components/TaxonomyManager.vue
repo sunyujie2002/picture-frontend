@@ -471,9 +471,9 @@ onMounted(reload)
   font-size: 13px;
   padding: 2px 10px;
   border-radius: 6px;
-  background: #f2f3ff;
-  border: 1px solid #e0e2f5;
-  color: #4338ca;
+  background: var(--tag-bg);
+  border: 1px solid var(--border);
+  color: var(--tag-color);
 }
 
 .modal-hint {

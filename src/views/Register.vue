@@ -16,7 +16,7 @@
       size="large"
       @finish="handleSubmit"
     >
-      <a-form-item name="userAccount" label="账号">
+      <a-form-item name="userAccount">
         <a-input v-model:value="form.userAccount" placeholder="4 ~ 32 位，支持字母、数字、下划线" allow-clear>
           <template #prefix>
             <UserOutlined class="field-icon" />
@@ -24,13 +24,13 @@
         </a-input>
       </a-form-item>
 
-      <a-form-item name="userPassword" label="密码">
+      <a-form-item name="userPassword">
         <a-input-password v-model:value="form.userPassword" placeholder="至少 6 位" allow-clear>
           <template #prefix>
             <LockOutlined class="field-icon" />
           </template>
         </a-input-password>
-        <div class="strength">
+        <div v-if="strength >= 1" class="strength">
           <span
             v-for="i in 3"
             :key="i"
@@ -42,7 +42,7 @@
         </div>
       </a-form-item>
 
-      <a-form-item name="confirmPassword" label="确认密码">
+      <a-form-item name="confirmPassword">
         <a-input-password
           v-model:value="form.confirmPassword"
           placeholder="请再次输入密码"
@@ -170,7 +170,7 @@ async function handleSubmit() {
   width: 34px;
   height: 4px;
   border-radius: 999px;
-  background: #e8eaf0;
+  background: var(--border);
   transition: background 0.2s ease;
 }
 
@@ -181,8 +181,7 @@ async function handleSubmit() {
 }
 
 .submit-btn {
-  height: 42px;
-  margin-top: 4px;
-  font-weight: 500;
+  margin-top: 8px;
+  font-weight: 600;
 }
 </style>

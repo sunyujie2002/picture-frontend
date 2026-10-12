@@ -341,12 +341,7 @@ onMounted(async () => {
 
 .preview-stage {
   border-radius: var(--radius);
-  background:
-    linear-gradient(45deg, #f2f3f7 25%, transparent 25%) -8px 0/16px 16px,
-    linear-gradient(-45deg, #f2f3f7 25%, transparent 25%) -8px 0/16px 16px,
-    linear-gradient(45deg, transparent 75%, #f2f3f7 75%),
-    linear-gradient(-45deg, transparent 75%, #f2f3f7 75%),
-    #fafbfd;
+  background: var(--checker);
   border: 1px solid var(--border);
   display: grid;
   place-items: center;
@@ -412,7 +407,7 @@ onMounted(async () => {
   width: 14px;
   height: 14px;
   border-radius: 4px;
-  border: 1px solid rgba(0, 0, 0, 0.08);
+  border: 1px solid var(--border);
 }
 
 .block-label {

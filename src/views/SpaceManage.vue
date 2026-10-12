@@ -706,7 +706,7 @@ onMounted(refresh)
 }
 
 .plan-card:hover:not(.disabled):not(.current) {
-  border-color: #b9bbf3;
+  border-color: var(--brand);
 }
 
 .plan-card.active {

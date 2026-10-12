@@ -1,17 +1,109 @@
 :root {
+  /* 品牌色 */
   --brand: #4f46e5;
   --brand-soft: #eef0ff;
+
+  /* 登录/注册左侧品牌面板（随主题变化） */
+  --brand-panel-bg: linear-gradient(150deg, #4f46e5 0%, #5b53f0 45%, #7c3aed 100%);
+  --brand-panel-glow-a: rgba(255, 255, 255, 0.22);
+  --brand-panel-glow-b: rgba(129, 140, 248, 0.5);
+  --brand-panel-glow-c: rgba(236, 233, 254, 0.28);
+
+  /* 背景与表面 */
   --bg: #f6f7fb;
   --surface: #ffffff;
+  --surface-2: #f3f4f8; /* 次级表面：悬浮 / 选中 / 浅填充 */
+  --header-bg: rgba(255, 255, 255, 0.85); /* 顶栏毛玻璃底色 */
+  --header-shadow: rgba(31, 36, 48, 0.06);
+
+  /* 边框 */
   --border: #e8eaf0;
+  --border-strong: #d8dbe4;
+
+  /* 文本 */
   --text: #1f2430;
   --text-secondary: #6b7280;
   --text-tertiary: #9aa1ae;
+
+  /* 标签 / 胶囊（分类名等自定义标签） */
+  --tag-bg: #f2f3ff;
+  --tag-color: #4338ca;
+
+  /* 滚动条 */
+  --scrollbar-thumb: #d7dae3;
+  --scrollbar-thumb-hover: #bfc4d0;
+
+  /* 遮罩（自定义浮层，AntD 自身浮层由组件库处理） */
+  --overlay: rgba(15, 17, 21, 0.45);
+
+  /* 编辑区加载/协作时的半透明遮罩（随主题变化） */
+  --mask: rgba(255, 255, 255, 0.75);
+
+  /* 浮在图片上的半透明小色块（勾选框、操作按钮等），随主题变化 */
+  --chip-bg: rgba(255, 255, 255, 0.92);
+
+  /* 首页 Hero 横幅底色（渐变，随主题变化） */
+  --hero-bg: linear-gradient(130deg, #eef0ff 0%, #f6f1ff 45%, #ffffff 100%);
+
+  /* 图片详情页透明预览的棋盘格底（随主题变化） */
+  --checker: linear-gradient(45deg, #f2f3f7 25%, transparent 25%) -8px 0 / 16px 16px,
+    linear-gradient(-45deg, #f2f3f7 25%, transparent 25%) -8px 0 / 16px 16px,
+    linear-gradient(45deg, transparent 75%, #f2f3f7 75%),
+    linear-gradient(-45deg, transparent 75%, #f2f3f7 75%), #fafbfd;
+
   --radius-lg: 16px;
   --radius: 12px;
   --shadow-sm: 0 1px 2px rgba(31, 36, 48, 0.04);
   --shadow: 0 1px 2px rgba(31, 36, 48, 0.04), 0 4px 16px -4px rgba(31, 36, 48, 0.08);
   --shadow-lg: 0 8px 32px -8px rgba(31, 36, 48, 0.14);
+}
+
+/* ---------- 深色模式：舒适的深蓝灰底，非纯黑，品牌色提亮一档保证对比度 ---------- */
+[data-theme='dark'] {
+  --brand: #818cf8;
+  --brand-soft: rgba(129, 140, 248, 0.16);
+
+  /* 深色下品牌面板：更深的靛紫渐变 + 低透明品牌色光晕，避免与深色背景反差过强 */
+  --brand-panel-bg: linear-gradient(150deg, #221d4d 0%, #28225c 45%, #311f54 100%);
+  --brand-panel-glow-a: rgba(129, 140, 248, 0.2);
+  --brand-panel-glow-b: rgba(129, 140, 248, 0.3);
+  --brand-panel-glow-c: rgba(167, 139, 250, 0.2);
+
+  --bg: #0f1115;
+  --surface: #17191e;
+  --surface-2: #1e222b;
+  --header-bg: rgba(15, 17, 21, 0.82);
+  --header-shadow: rgba(0, 0, 0, 0.45);
+
+  --border: #2a2e38;
+  --border-strong: #353a47;
+
+  --text: #e6e8ee;
+  --text-secondary: #a0a6b4;
+  --text-tertiary: #6b7280;
+
+  --tag-bg: rgba(129, 140, 248, 0.16);
+  --tag-color: #a5b4fc;
+
+  --scrollbar-thumb: #353a47;
+  --scrollbar-thumb-hover: #454c5c;
+
+  --overlay: rgba(0, 0, 0, 0.6);
+
+  --mask: rgba(15, 17, 21, 0.72);
+
+  --chip-bg: rgba(23, 25, 30, 0.9);
+
+  --hero-bg: linear-gradient(130deg, #191c29 0%, #1c192b 45%, #131519 100%);
+
+  --checker: linear-gradient(45deg, #232732 25%, transparent 25%) -8px 0 / 16px 16px,
+    linear-gradient(-45deg, #232732 25%, transparent 25%) -8px 0 / 16px 16px,
+    linear-gradient(45deg, transparent 75%, #232732 75%),
+    linear-gradient(-45deg, transparent 75%, #232732 75%), #17191e;
+
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.4);
+  --shadow: 0 1px 2px rgba(0, 0, 0, 0.4), 0 4px 16px -4px rgba(0, 0, 0, 0.5);
+  --shadow-lg: 0 8px 32px -8px rgba(0, 0, 0, 0.6);
 }
 
 * {
@@ -37,19 +129,19 @@ a {
   text-decoration: none;
 }
 
-/* 统一滚动条观感 */
+/* 统一滚动条观感（随主题变化） */
 ::-webkit-scrollbar {
   width: 8px;
   height: 8px;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #d7dae3;
+  background: var(--scrollbar-thumb);
   border-radius: 8px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #bfc4d0;
+  background: var(--scrollbar-thumb-hover);
 }
 
 ::-webkit-scrollbar-track {

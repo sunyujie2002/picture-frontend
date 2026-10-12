@@ -30,6 +30,10 @@
     <section class="panel">
       <div class="panel-card">
         <div class="card-body">
+          <div class="card-brand">
+            <span class="card-mark"><PictureOutlined /></span>
+            <span class="card-name">图库 · PictureHub</span>
+          </div>
           <slot />
         </div>
       </div>
@@ -75,7 +79,7 @@ const year = new Date().getFullYear()
   flex-direction: column;
   justify-content: space-between;
   color: #fff;
-  background: linear-gradient(150deg, #4f46e5 0%, #5b53f0 45%, #7c3aed 100%);
+  background: var(--brand-panel-bg);
 }
 
 .glow {
@@ -90,7 +94,7 @@ const year = new Date().getFullYear()
   height: 420px;
   top: -140px;
   right: -120px;
-  background: radial-gradient(circle, rgba(255, 255, 255, 0.22), transparent 65%);
+  background: radial-gradient(circle, var(--brand-panel-glow-a), transparent 65%);
 }
 
 .glow-b {
@@ -98,7 +102,7 @@ const year = new Date().getFullYear()
   height: 320px;
   bottom: -100px;
   left: -80px;
-  background: radial-gradient(circle, rgba(129, 140, 248, 0.5), transparent 65%);
+  background: radial-gradient(circle, var(--brand-panel-glow-b), transparent 65%);
 }
 
 .glow-c {
@@ -106,7 +110,7 @@ const year = new Date().getFullYear()
   height: 180px;
   bottom: 120px;
   right: 80px;
-  background: radial-gradient(circle, rgba(236, 233, 254, 0.28), transparent 65%);
+  background: radial-gradient(circle, var(--brand-panel-glow-c), transparent 65%);
 }
 
 .brand-body {
@@ -201,20 +205,72 @@ const year = new Date().getFullYear()
   place-items: center;
   padding: 40px 24px;
   background: var(--bg);
+  position: relative;
+  overflow: hidden;
+}
+
+.panel::before {
+  content: '';
+  position: absolute;
+  width: 480px;
+  height: 480px;
+  border-radius: 50%;
+  background: radial-gradient(circle, var(--brand-soft), transparent 70%);
+  top: -140px;
+  right: -110px;
+  pointer-events: none;
 }
 
 .panel-card {
+  position: relative;
+  z-index: 1;
   width: 100%;
-  max-width: 400px;
+  max-width: 408px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-lg);
+  padding: 38px 38px 32px;
 }
 
 .card-body {
-  /* 卡片自身带内边距，这里只做插槽容器，避免撑破既有间距 */
   display: block;
+}
+
+.card-brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 26px;
+}
+
+.card-mark {
+  width: 38px;
+  height: 38px;
+  border-radius: 11px;
+  display: grid;
+  place-items: center;
+  font-size: 19px;
+  color: #fff;
+  background: linear-gradient(135deg, var(--brand) 0%, #7c3aed 100%);
+  box-shadow: var(--shadow-sm);
+}
+
+.card-name {
+  font-size: 16px;
+  font-weight: 650;
+  letter-spacing: -0.2px;
+  color: var(--text);
 }
 
 @media (max-width: 960px) {
   .brand {
+    display: none;
+  }
+}
+
+@media (min-width: 961px) {
+  .card-brand {
     display: none;
   }
 }

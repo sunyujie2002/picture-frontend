@@ -12,6 +12,9 @@ import { CanvasRenderer } from 'echarts/renderers'
 // 词云是独立扩展包，import 即完成注册
 import 'echarts-wordcloud'
 
+import { useThemeStore } from '@/stores/theme'
+import { getChartThemeColors } from '@/utils/chartTheme'
+
 echarts.use([BarChart, LineChart, PieChart, GridComponent, LegendComponent, TooltipComponent, CanvasRenderer])
 
 const props = defineProps({
@@ -30,6 +33,44 @@ const holder = ref()
 let chart = null
 let observer = null
 
+/**
+ * 把主题色（轴文字 / 轴线条 / 分割线 / tooltip）注入到 option，跟随深浅模式。
+ * 纯函数式：只生成新的子对象，绝不修改传入的 option，避免触发父级 option 的 deep watch 死循环。
+ */
+function themeChart(opt, c) {
+  if (Array.isArray(opt)) return opt.map((item) => themeChart(item, c))
+  if (opt && typeof opt === 'object') {
+    const out = {}
+    for (const key in opt) {
+      if (key === 'axisLabel' && opt.axisLabel && typeof opt.axisLabel === 'object') {
+        out.axisLabel = { ...opt.axisLabel, color: c.axisText }
+      } else if (key === 'axisLine' && opt.axisLine && typeof opt.axisLine === 'object') {
+        out.axisLine = { ...opt.axisLine, lineStyle: { ...(opt.axisLine.lineStyle || {}), color: c.axisLine } }
+      } else if (key === 'splitLine' && opt.splitLine && typeof opt.splitLine === 'object') {
+        out.splitLine = {
+          ...opt.splitLine,
+          lineStyle: { ...(opt.splitLine.lineStyle || {}), color: c.splitLine, type: 'dashed' }
+        }
+      } else if (key === 'legend' && opt.legend && typeof opt.legend === 'object') {
+        out.legend = { ...opt.legend, textStyle: { ...(opt.legend.textStyle || {}), color: c.axisText } }
+      } else if (key === 'textStyle' && opt.textStyle && typeof opt.textStyle === 'object') {
+        out.textStyle = { ...opt.textStyle, color: c.axisText }
+      } else if (key === 'tooltip' && opt.tooltip && typeof opt.tooltip === 'object') {
+        out.tooltip = {
+          ...opt.tooltip,
+          backgroundColor: c.tooltipBg,
+          borderColor: c.tooltipBorder,
+          textStyle: { ...(opt.tooltip.textStyle || {}), color: c.tooltipText }
+        }
+      } else {
+        out[key] = themeChart(opt[key], c)
+      }
+    }
+    return out
+  }
+  return opt
+}
+
 function render(option) {
   if (!chart) return
   if (!option) {
@@ -37,9 +78,18 @@ function render(option) {
     return
   }
   // notMerge = true：切换指标 / 数据源时不会残留上一次的 series
-  chart.setOption(option, true)
+  // 注入主题色，让坐标轴 / 文字 / tooltip 跟随深浅模式（从 CSS 变量读取，与全站统一）
+  const themed = themeChart(option, getChartThemeColors())
+  chart.setOption(themed, true)
   chart.resize()
 }
+
+const themeStore = useThemeStore()
+// 主题切换后，画布用新的配色重新渲染（容器高度等不变，仅颜色刷新）
+watch(
+  () => themeStore.mode,
+  () => render(props.option)
+)
 
 onMounted(() => {
   chart = echarts.init(holder.value)

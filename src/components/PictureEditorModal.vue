@@ -293,6 +293,9 @@ import {
 import { createCollabSocket } from '@/utils/collabSocket'
 import { uploadPicture, updatePicture } from '@/api/picture'
 import { getToken } from '@/api/request'
+import { useThemeStore } from '@/stores/theme'
+
+const themeStore = useThemeStore()
 
 const props = defineProps({
   open: { type: Boolean, default: false },
@@ -354,6 +357,11 @@ const redoStack = ref([])
  * 若此处后置会导致暂时性死区（TDZ）报错 Cannot access 'canvas' before initialization。
  */
 let canvas = null
+
+// 画布背景底色随主题变化（这是编辑区底色，不是图片内容本身）
+function canvasBg() {
+  return getComputedStyle(document.documentElement).getPropertyValue('--surface').trim() || '#ffffff'
+}
 let applyingRemote = false
 /** 当前正在拖的选框：'crop' 裁剪、'mosaic' 打码 */
 let dragMode = null
@@ -587,6 +595,16 @@ watch(
   }
 )
 
+// 主题切换时同步画布底色（不影响图片内容与已编辑操作）
+watch(
+  () => themeStore.mode,
+  () => {
+    if (canvas) {
+      canvas.setBackgroundColor(canvasBg(), canvas.renderAll.bind(canvas))
+    }
+  }
+)
+
 /**
  * 等待弹窗内的 canvas 节点真正挂载
  *
@@ -642,7 +660,7 @@ async function initCanvas() {
   canvas = new fabric.Canvas(canvasEl.value, {
     preserveObjectStacking: true,
     selection: true,
-    backgroundColor: '#ffffff'
+    backgroundColor: canvasBg()
   })
 
   const image = await loadBaseImage(canvas, url)
@@ -1742,7 +1760,7 @@ onBeforeUnmount(teardown)
   display: flex;
   /* 正常情况下画布不会超出容器；放大到极限时留一个滚动条兜底，避免画面被裁掉看不到 */
   overflow: auto;
-  background: repeating-conic-gradient(#f3f4f8 0% 25%, #fff 0% 50%) 50% / 18px 18px;
+  background: var(--checker);
   border: 1px solid var(--border);
   border-radius: var(--radius);
 }
@@ -1775,7 +1793,7 @@ onBeforeUnmount(teardown)
   display: flex;
   align-items: center;
   justify-content: center;
-  background: rgba(255, 255, 255, 0.75);
+  background: var(--mask);
 }
 
 .canvas-footer {
@@ -1854,15 +1872,15 @@ onBeforeUnmount(teardown)
 }
 
 .side-scroll:hover::-webkit-scrollbar-thumb {
-  background: #d7dae3;
+  background: var(--scrollbar-thumb);
 }
 
 .side-scroll:hover::-webkit-scrollbar-thumb:hover {
-  background: #bfc4d0;
+  background: var(--scrollbar-thumb-hover);
 }
 
 .side-scroll:hover {
-  scrollbar-color: #d7dae3 transparent;
+  scrollbar-color: var(--scrollbar-thumb) transparent;
 }
 
 @media (max-width: 1100px) {

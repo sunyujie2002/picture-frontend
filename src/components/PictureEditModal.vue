@@ -299,7 +299,7 @@ async function handleOk() {
   padding: 12px;
   margin-bottom: 18px;
   border-radius: var(--radius);
-  background: #f7f8fc;
+  background: var(--surface-2);
   border: 1px solid var(--border);
 }
 
@@ -308,7 +308,7 @@ async function handleOk() {
   height: 88px;
   border-radius: 10px;
   object-fit: cover;
-  background: #eceef4;
+  background: var(--surface-2);
   flex-shrink: 0;
 }
 

@@ -503,7 +503,7 @@ function resetAll() {
   padding: 12px;
   margin-bottom: 18px;
   border-radius: var(--radius);
-  background: #f7f8fc;
+  background: var(--surface-2);
   border: 1px solid var(--border);
 }
 
