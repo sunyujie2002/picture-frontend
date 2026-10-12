@@ -116,15 +116,16 @@
     <!-- 结果区 -->
     <section class="result">
       <a-spin :spinning="loading" tip="加载中…">
+        <!-- 游客也可浏览公共图库；确需登录的接口由后端返回 40100，请求拦截器统一提示并跳转 -->
         <template v-if="pictures.length">
-          <PictureGrid :items="pictures" :gap="18">
+          <!-- 公共图库：一行 4 张，不显示悬浮操作按钮，下载统一在详情页进行 -->
+          <PictureGrid :items="pictures" :gap="18" :columns="4">
             <template #default="{ item }">
               <PictureCard
                 :picture="item"
                 show-time
+                :hover-actions="false"
                 @click="goDetail"
-                @detail="goDetail"
-                @download="handleDownload"
               />
             </template>
           </PictureGrid>
@@ -156,7 +157,6 @@
 <script setup>
 import { computed, onMounted, reactive, ref, watch } from 'vue'
 import { useRouter } from 'vue-router'
-import { message } from 'ant-design-vue'
 import { ReloadOutlined } from '@ant-design/icons-vue'
 import PictureGrid from '@/components/PictureGrid.vue'
 import PictureCard from '@/components/PictureCard.vue'
@@ -164,7 +164,6 @@ import ColorPicker from '@/components/ColorPicker.vue'
 import { queryHomePictureList } from '@/api/picture'
 import { PIC_FORMAT_OPTIONS, SORT_FIELD_OPTIONS, SORT_ORDER } from '@/constants'
 import { useDictStore } from '@/stores/dict'
-import { downloadPicture } from '@/utils/format'
 import { useUserStore } from '@/stores/user'
 
 const router = useRouter()
@@ -312,15 +311,6 @@ function goDetail(picture) {
 
 function goUpload() {
   router.push('/upload')
-}
-
-async function handleDownload(picture) {
-  try {
-    await downloadPicture(picture)
-    message.success('已开始下载')
-  } catch (e) {
-    message.error(e?.message || '下载失败，请稍后重试')
-  }
 }
 
 onMounted(() => {

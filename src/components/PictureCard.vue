@@ -20,7 +20,8 @@
       <!-- 右下角主色调标识 -->
       <span v-if="color" class="color-chip" :style="{ background: color }" :title="`主色调 ${color}`" />
 
-      <div class="overlay" @click.stop>
+      <!-- 公共图片列表不显示悬浮操作按钮：下载只在详情页提供 -->
+      <div v-if="hoverActions" class="overlay" @click.stop>
         <div class="overlay-actions">
           <a-tooltip title="查看详情">
             <button class="act" @click="emit('detail', picture)">
@@ -98,7 +99,9 @@ const props = defineProps({
   selectable: { type: Boolean, default: false },
   checked: { type: Boolean, default: false },
   editable: { type: Boolean, default: false },
-  showTime: { type: Boolean, default: false }
+  showTime: { type: Boolean, default: false },
+  /** 是否显示鼠标悬浮时浮在图片上的操作按钮（查看详情 / 下载 / 编辑 / 删除） */
+  hoverActions: { type: Boolean, default: true }
 })
 
 const emit = defineEmits(['click', 'detail', 'download', 'edit', 'canvas-edit', 'delete', 'check-change'])
@@ -124,8 +127,8 @@ const tagLabels = computed(() => {
   return dictStore.tagLabels(tags.filter((t) => t !== null && t !== undefined))
 })
 
-// 统一缩略图比例（1:1），保证网格里每张卡片的图片区域等高，不依赖瀑布流
-const thumbStyle = computed(() => ({ aspectRatio: '1 / 1' }))
+// 统一图片区域比例（16:10 横向，参照主流壁纸站卡片），保证网格里每张卡片的图片区域等高
+const thumbStyle = computed(() => ({ aspectRatio: '16 / 10' }))
 
 const reviewTag = computed(() => {
   const status = props.picture?.reviewStatus

@@ -115,7 +115,8 @@
         <a-empty v-if="!searching && !similarList.length" description="没有找到相似的图片" />
         <PictureGrid v-else :items="similarList" :gap="16">
           <template #default="{ item }">
-            <PictureCard :picture="item" show-time @click="goDetail" @detail="goDetail" @download="handleDownload" />
+            <!-- 相似图片同样是公共展示：不挂悬浮操作按钮，下载走各自详情页的「下载原图」 -->
+            <PictureCard :picture="item" show-time :hover-actions="false" @click="goDetail" />
           </template>
         </PictureGrid>
       </a-spin>
