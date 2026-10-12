@@ -112,14 +112,19 @@ const scrolled = ref(false)
 const selectedKeys = ref([])
 
 const menuItems = computed(() => {
-  const items = [
-    { key: '/', icon: () => h(PictureOutlined), label: '图库首页' },
-    { key: '/upload', icon: () => h(CloudUploadOutlined), label: '上传图片' },
-    // 公共图片管理列表对所有登录用户都只返回自己上传的图片，管理员与普通用户共用同一入口
-    { key: '/my', icon: () => h(AppstoreOutlined), label: '图片管理' },
-    // 个人空间与团队空间共用一个页面，页内按空间类型切换
-    { key: '/space', icon: () => h(DatabaseOutlined), label: '我的空间' }
-  ]
+  const items = [{ key: '/', icon: () => h(PictureOutlined), label: '图库首页' }]
+
+  // 上传 / 图片管理 / 我的空间都是登录后才有意义的入口，游客不展示
+  // （路径本身仍由路由守卫拦截，避免地址栏直接进入）
+  if (userStore.isLogin) {
+    items.push(
+      { key: '/upload', icon: () => h(CloudUploadOutlined), label: '上传图片' },
+      // 公共图片管理列表对所有登录用户都只返回自己上传的图片，管理员与普通用户共用同一入口
+      { key: '/my', icon: () => h(AppstoreOutlined), label: '图片管理' },
+      // 个人空间与团队空间共用一个页面，页内按空间类型切换
+      { key: '/space', icon: () => h(DatabaseOutlined), label: '我的空间' }
+    )
+  }
 
   if (userStore.isAdmin) {
     items.push({

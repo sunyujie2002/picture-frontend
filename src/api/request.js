@@ -1,5 +1,6 @@
 import axios from 'axios'
 import { message } from 'ant-design-vue'
+import { NOT_LOGIN_MESSAGE } from '@/constants'
 
 const TOKEN_KEY = 'picture_token'
 
@@ -72,14 +73,16 @@ request.interceptors.response.use(
 
     // silent：调用方自行处理业务错误，不弹全局提示（如探测用户是否已有空间）
     if (!response.config?.silent) {
-      message.error(msg || '请求失败')
+      // 未登录提示统一用前端文案，与路由拦截说法一致（不用后端原文，避免两种说法）
+      message.error(code === NOT_LOGIN_CODE ? NOT_LOGIN_MESSAGE : msg || '请求失败')
     }
     return Promise.reject(Object.assign(new Error(msg || '请求失败'), { code, data }))
   },
   (error) => {
     const status = error?.response?.status
     let tip = '网络异常，请稍后重试'
-    if (status === 401) tip = '登录已过期，请重新登录'
+    // 401 同样按后端 NOT_LOGIN_ERROR 的口径提示，避免与业务码 40100 说法不一致
+    if (status === 401) tip = NOT_LOGIN_MESSAGE
     else if (status === 403) tip = '当前用户无权限'
     else if (status === 404) tip = '请求的资源不存在'
     else if (status >= 500) tip = '服务器开小差了，请稍后重试'

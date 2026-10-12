@@ -122,6 +122,16 @@ export const PICTURE_SCOPE = {
   PRIVATE: 'private'
 }
 
+/**
+ * 未登录提示文案：前端所有「未登录」场景统一用这一句，包括
+ * 路由拦截（正常用户走这条）与接口返回 40100 / HTTP 401（兜底防越权，正常用户走不到）。
+ *
+ * 两条路径用同一句，用户看到的提示不会因为触发点不同而变样。
+ * 后端 ErrorCode.NOT_LOGIN_ERROR(40100) 也有自己的 message，但那是防越权的兜底文案，
+ * 前端不再展示后端原文，改这里即可全局生效。
+ */
+export const NOT_LOGIN_MESSAGE = '未登录，请先登录'
+
 /** 常用图片格式筛选项 */
 export const PIC_FORMAT_OPTIONS = ['jpg', 'jpeg', 'png', 'webp', 'gif', 'bmp'].map((v) => ({
   value: v,

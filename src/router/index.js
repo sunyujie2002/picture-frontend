@@ -1,5 +1,7 @@
 import { createRouter, createWebHistory } from 'vue-router'
+import { message } from 'ant-design-vue'
 import { useUserStore } from '@/stores/user'
+import { NOT_LOGIN_MESSAGE } from '@/constants'
 
 const routes = [
   {
@@ -117,6 +119,21 @@ const router = createRouter({
   scrollBehavior: () => ({ top: 0 })
 })
 
+/**
+ * 未登录可访问的路由白名单（路由名），其余一律拦截。
+ *
+ * 后端只能管接口，管不到路由，所以路由这层得前端自己「做死」：
+ * 不逐个路由标记是否需要登录，而是默认全部需要登录、只放行下面这几个，
+ * 新增页面忘记标记也不会漏。
+ *
+ * 放行项说明：
+ * - home：公共图库浏览（列表接口已加入后端白名单）
+ * - picture-detail：游客能看列表就该能点进详情（详情接口同样已放行）
+ * - login / register：登录注册本身
+ * - not-found：兜底页，不拦（否则未登录访问不存在的地址会先跳登录）
+ */
+const PUBLIC_ROUTE_NAMES = ['home', 'picture-detail', 'login', 'register', 'not-found']
+
 router.beforeEach(async (to) => {
   const userStore = useUserStore()
 
@@ -125,8 +142,14 @@ router.beforeEach(async (to) => {
     await userStore.fetchUserInfo()
   }
 
-  // 登录态不在前端拦截：统一由后端接口校验，返回 40100 时
-  // BasicLayout 统一清登录态并跳转登录页，接口放行范围只改后端白名单即可
+  // 未登录一律只放行白名单路由，其余先提示再跳登录页（带 redirect，登录后回到原地址）。
+  // 提示文案与接口 40100 / 401 完全一致，都是 NOT_LOGIN_MESSAGE。
+  // 接口层仍由后端判定权限，这里的拦截是页面入口层面的「做死」，两者不冲突。
+  if (!PUBLIC_ROUTE_NAMES.includes(to.name) && !userStore.isLogin) {
+    message.error(NOT_LOGIN_MESSAGE)
+    return { name: 'login', query: { redirect: to.fullPath } }
+  }
+
   if (to.meta.admin && !userStore.isAdmin) {
     return { name: 'home' }
   }
