@@ -43,22 +43,37 @@
             / {{ rows.length }}</template
           >
         </span>
+        <a-tooltip v-if="isAdmin" :title="dragHint">
+          <span class="drag-tip">
+            <HolderOutlined />
+            {{ keyword ? '筛选状态下不可拖拽' : '拖动行可调整展示顺序' }}
+          </span>
+        </a-tooltip>
       </div>
 
       <a-table
         :columns="columns"
         :data-source="filteredRows"
         :loading="loading"
-        :pagination="filteredRows.length > 20 ? { pageSize: 20, showSizeChanger: false } : false"
+        :pagination="pagination"
+        :custom-row="customRow"
         row-key="id"
         size="middle"
+        @change="handleTableChange"
       >
         <template #emptyText>
           <a-empty :description="loading ? '' : `还没有${label}，点右上角新建`" />
         </template>
 
         <template #bodyCell="{ column, record }">
-          <template v-if="column.key === 'id'">
+          <template v-if="column.key === 'sort'">
+            <span class="sort-cell" :class="{ 'is-disabled': !canDrag }">
+              <HolderOutlined class="drag-handle" />
+              <span class="sort-value">{{ record.sort ?? '—' }}</span>
+            </span>
+          </template>
+
+          <template v-else-if="column.key === 'id'">
             <span class="id-cell">#{{ record.id }}</span>
           </template>
 
@@ -88,7 +103,7 @@
 
     <a-modal
       v-model:open="modalOpen"
-      :title="editing ? `修改${label}名称` : `新建${label}`"
+      :title="editing ? `修改${label}` : `新建${label}`"
       :confirm-loading="submitting"
       :ok-text="editing ? '保存' : '创建'"
       cancel-text="取消"
@@ -108,6 +123,16 @@
             @press-enter="handleSubmit"
           />
         </a-form-item>
+        <a-form-item :label="`排序值`">
+          <a-input-number
+            v-model:value="formSort"
+            :min="0"
+            :precision="0"
+            :style="{ width: '160px' }"
+            placeholder="留空则排在最后"
+          />
+          <span class="field-hint">数字越小越靠前；也可以直接在列表里拖动行调整。</span>
+        </a-form-item>
       </a-form>
       <p class="modal-hint">{{ nameHint }}</p>
     </a-modal>
@@ -115,11 +140,11 @@
 </template>
 
 <script setup>
-import { computed, onMounted, ref } from 'vue'
+import { computed, onMounted, ref, watch } from 'vue'
 import { Modal, message } from 'ant-design-vue'
-import { PlusOutlined, ReloadOutlined } from '@ant-design/icons-vue'
-import { addCategory, deleteCategory, updateCategory } from '@/api/category'
-import { addTag, deleteTag, updateTag } from '@/api/tag'
+import { HolderOutlined, PlusOutlined, ReloadOutlined } from '@ant-design/icons-vue'
+import { addCategory, deleteCategory, updateCategory, updateCategorySort } from '@/api/category'
+import { addTag, deleteTag, updateTag, updateTagSort } from '@/api/tag'
 import { useDictStore } from '@/stores/dict'
 import { useUserStore } from '@/stores/user'
 import { formatTime } from '@/utils/format'
@@ -137,8 +162,8 @@ const nameKey = computed(() => (isCategory.value ? 'categoryName' : 'tagName'))
 
 const api = computed(() =>
   isCategory.value
-    ? { add: addCategory, update: updateCategory, remove: deleteCategory }
-    : { add: addTag, update: updateTag, remove: deleteTag }
+    ? { add: addCategory, update: updateCategory, remove: deleteCategory, sort: updateCategorySort }
+    : { add: addTag, update: updateTag, remove: deleteTag, sort: updateTagSort }
 )
 
 const nameHint = computed(() =>
@@ -157,9 +182,19 @@ const submitting = ref(false)
 const modalOpen = ref(false)
 const editing = ref(null)
 const formName = ref('')
+const formSort = ref(null)
 const validateState = ref({})
 
-const rows = computed(() => (isCategory.value ? dictStore.adminCategories : dictStore.adminTags))
+/** 分页（后端一次性返回全量，分页在前端做） */
+const pageNum = ref(1)
+const pageSize = ref(20)
+/** 拖拽中的行下标，-1 表示未拖拽 */
+const dragIndex = ref(-1)
+const savingSort = ref(false)
+
+const storeRows = computed(() => (isCategory.value ? dictStore.adminCategories : dictStore.adminTags))
+/** 本地副本：拖拽排序要改动顺序，不能直接改 store 里的数组 */
+const rows = ref([])
 
 const filteredRows = computed(() => {
   const kw = keyword.value.trim().toLowerCase()
@@ -167,7 +202,26 @@ const filteredRows = computed(() => {
   return rows.value.filter((r) => String(r[nameKey.value] || '').toLowerCase().includes(kw))
 })
 
+/** 筛选状态下顺序是子集，拖出来的结果没法稳定写回全量列表，此时禁用拖拽 */
+const canDrag = computed(() => isAdmin.value && !keyword.value.trim() && !savingSort.value)
+
+const dragHint = computed(() =>
+  keyword.value
+    ? '清空筛选后才能拖拽排序'
+    : `按住任意行上下拖动即可调整${label.value}的展示顺序，保存后全站生效`
+)
+
+const pagination = computed(() => ({
+  current: pageNum.value,
+  pageSize: pageSize.value,
+  showSizeChanger: true,
+  pageSizeOptions: ['10', '20', '50', '100'],
+  showTotal: (total) => `共 ${total} 个${label.value}`,
+  hideOnSinglePage: false
+}))
+
 const columns = computed(() => [
+  { title: '排序', key: 'sort', width: 90 },
   { title: 'ID', key: 'id', width: 80 },
   { title: `${label.value}名称`, key: 'name' },
   { title: '创建时间', key: 'createTime', width: 180 },
@@ -175,18 +229,97 @@ const columns = computed(() => [
   { title: '操作', key: 'action', width: 140, align: 'right' }
 ])
 
+function handleTableChange(pager) {
+  pageNum.value = pager.current
+  pageSize.value = pager.pageSize
+}
+
+// 筛选词变化后回到第一页，避免停在一个已经不存在的页码上
+watch(keyword, () => {
+  pageNum.value = 1
+})
+
 async function reload() {
   loading.value = true
   try {
     await dictStore.loadAdmin(true)
+    // 后端已按 sort 升序返回，本地副本保持同一顺序
+    rows.value = [...storeRows.value]
   } finally {
     loading.value = false
+  }
+}
+
+/** 行拖拽：整行可拖，手柄只是视觉提示 */
+function customRow(record, index) {
+  if (!canDrag.value) return {}
+  return {
+    draggable: true,
+    style: { cursor: 'move' },
+    onDragstart: (e) => {
+      dragIndex.value = index
+      e.dataTransfer.effectAllowed = 'move'
+    },
+    onDragover: (e) => {
+      e.preventDefault()
+      e.dataTransfer.dropEffect = 'move'
+    },
+    onDrop: (e) => {
+      e.preventDefault()
+      handleDrop(index)
+    },
+    onDragend: () => {
+      dragIndex.value = -1
+    }
+  }
+}
+
+async function handleDrop(targetIndex) {
+  const from = dragIndex.value
+  dragIndex.value = -1
+  if (from < 0 || from === targetIndex) return
+  const next = [...rows.value]
+  const [moved] = next.splice(from, 1)
+  next.splice(targetIndex, 0, moved)
+  const prevOrder = rows.value
+  rows.value = next
+  await saveOrder(next, prevOrder)
+}
+
+/**
+ * 保存排序：按当前列表顺序写 sort = 下标 + 1，只提交顺序发生变化的条目
+ * @param {Array} next 新顺序
+ * @param {Array} prev 旧顺序，用于失败回滚
+ */
+async function saveOrder(next, prev) {
+  // 只提交排序值真正变化的条目
+  const items = next
+    .map((row, index) => ({ id: row.id, sort: index + 1 }))
+    .filter((item) => {
+      const old = prev.find((r) => String(r.id) === String(item.id))
+      return !old || old.sort !== item.sort
+    })
+  if (!items.length) return
+
+  savingSort.value = true
+  try {
+    await api.value.sort(items)
+    message.success('排序已保存')
+    await dictStore.refreshAll()
+    rows.value = [...storeRows.value]
+  } catch (e) {
+    // 保存失败回滚到拖动前的顺序，避免界面和库里不一致
+    rows.value = [...prev]
+    message.error('排序保存失败，已恢复原顺序')
+  } finally {
+    savingSort.value = false
   }
 }
 
 function openCreate() {
   editing.value = null
   formName.value = ''
+  formSort.value = null
   validateState.value = {}
   modalOpen.value = true
 }
@@ -194,6 +327,7 @@ function openCreate() {
 function openEdit(record) {
   editing.value = record
   formName.value = record[nameKey.value] || ''
+  formSort.value = record.sort ?? null
   validateState.value = {}
   modalOpen.value = true
 }
@@ -209,17 +343,21 @@ async function handleSubmit() {
   }
   validateState.value = {}
 
+  // 排序值留空表示不指定：新增时由后端排在最后，编辑时不改动原排序
+  const sort = formSort.value === null || formSort.value === '' ? undefined : Number(formSort.value)
+
   submitting.value = true
   try {
     if (editing.value) {
-      await api.value.update({ id: editing.value.id, [nameKey.value]: name })
+      await api.value.update({ id: editing.value.id, [nameKey.value]: name, sort })
       message.success(`${label.value}已更新`)
     } else {
-      await api.value.add({ [nameKey.value]: name })
+      await api.value.add({ [nameKey.value]: name, sort })
       message.success(`${label.value}创建成功`)
     }
     modalOpen.value = false
     await dictStore.refreshAll()
+    rows.value = [...storeRows.value]
   } catch (e) {
     /* 拦截器已提示具体原因（重名 / 被引用 / 无权限等） */
   } finally {
@@ -241,6 +379,7 @@ function handleDelete(record) {
         await api.value.remove(record.id)
         message.success(`${label.value}已删除`)
         await dictStore.refreshAll()
+        rows.value = [...storeRows.value]
       } catch (e) {
         /* 拦截器已提示 */
       }
@@ -296,6 +435,43 @@ onMounted(reload)
 .id-cell {
   color: var(--text-tertiary);
   font-variant-numeric: tabular-nums;
+}
+
+.drag-tip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  color: var(--text-tertiary);
+  cursor: help;
+}
+
+.sort-cell {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.sort-cell .drag-handle {
+  color: var(--text-tertiary);
+  cursor: move;
+}
+
+/* 筛选状态 / 非管理员：手柄不再提示可拖拽 */
+.sort-cell.is-disabled .drag-handle {
+  color: var(--border);
+  cursor: default;
+}
+
+.sort-value {
+  font-variant-numeric: tabular-nums;
+  color: var(--text-secondary);
+}
+
+.field-hint {
+  margin-left: 10px;
+  font-size: 12px;
+  color: var(--text-tertiary);
 }
 
 .name-tag {

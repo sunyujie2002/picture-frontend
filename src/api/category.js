@@ -28,3 +28,8 @@ export function updateCategory(data) {
 export function deleteCategory(id) {
   return request.post('/category/admin/delete', { id })
 }
+
+/** 批量更新分类排序（管理员）；items 为 [{ id, sort }]，sort 越小越靠前 */
+export function updateCategorySort(items) {
+  return request.post('/category/admin/updateSort', { items })
+}

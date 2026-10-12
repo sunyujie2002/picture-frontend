@@ -28,3 +28,8 @@ export function updateTag(data) {
 export function deleteTag(id) {
   return request.post('/tag/admin/delete', { id })
 }
+
+/** 批量更新标签排序（管理员）；items 为 [{ id, sort }]，sort 越小越靠前 */
+export function updateTagSort(items) {
+  return request.post('/tag/admin/updateSort', { items })
+}
