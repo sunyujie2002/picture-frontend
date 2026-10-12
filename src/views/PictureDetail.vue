@@ -63,7 +63,7 @@
                 {{ color || '未识别' }}
               </span>
             </a-descriptions-item>
-            <a-descriptions-item label="上传者">{{ uploaderName || '-' }}</a-descriptions-item>
+            <a-descriptions-item label="上传者">{{ picture.userName || '-' }}</a-descriptions-item>
             <a-descriptions-item label="创建时间">{{ formatTime(picture.createTime) }}</a-descriptions-item>
           </a-descriptions>
 
@@ -131,7 +131,7 @@
 </template>
 
 <script setup>
-import { computed, onMounted, ref, watch } from 'vue'
+import { computed, onMounted, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { message } from 'ant-design-vue'
 import {
@@ -160,7 +160,6 @@ import {
   reviewMeta
 } from '@/utils/format'
 import { originUrl, resolveImageUrl } from '@/utils/image'
-import { cachedUserName, loadUserNames } from '@/utils/uploader'
 import { REVIEW_STATUS } from '@/constants'
 import { useUserStore } from '@/stores/user'
 import { useDictStore } from '@/stores/dict'
@@ -187,21 +186,6 @@ const cover = computed(() => resolveImageUrl(picture.value?.url || picture.value
 const color = computed(() => normalizeColor(picture.value?.picColor))
 const tagList = computed(() => (Array.isArray(picture.value?.tags) ? picture.value.tags : []))
 const tagLabels = computed(() => dictStore.tagLabels(tagList.value))
-
-// 接口只给 userId，展示前换成人名（带缓存，同一个人只查一次）
-const uploaderName = ref('')
-watch(
-  () => picture.value?.userId,
-  async (userId) => {
-    if (!userId) {
-      uploaderName.value = ''
-      return
-    }
-    await loadUserNames([userId])
-    uploaderName.value = cachedUserName(userId) || '用户'
-  },
-  { immediate: true }
-)
 
 // 管理员可编辑全部；普通用户仅能编辑自己上传的图片
 const canEdit = computed(() => {

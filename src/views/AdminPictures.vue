@@ -96,7 +96,7 @@
 
           <template v-else-if="column.key === 'uploader'">
             <span class="uploader-name ellipsis-1">
-              {{ cachedUserName(record.userId) || '未知用户' }}
+              {{ record.userName || '未知用户' }}
             </span>
           </template>
 
@@ -203,7 +203,7 @@
 </template>
 
 <script setup>
-import { computed, onMounted, reactive, ref, watch } from 'vue'
+import { computed, onMounted, reactive, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { message } from 'ant-design-vue'
 import { InfoCircleOutlined } from '@ant-design/icons-vue'
@@ -219,7 +219,6 @@ import {
 import { useDictStore } from '@/stores/dict'
 import { formatSize, formatTime, normalizeColor, reviewMeta } from '@/utils/format'
 import { displayUrl } from '@/utils/image'
-import { cachedUserName, loadUserNames } from '@/utils/uploader'
 
 const dictStore = useDictStore()
 const categoryOptions = computed(() => dictStore.categoryOptions)
@@ -233,11 +232,6 @@ const submitting = ref(false)
 const selectedIds = ref([])
 
 const reviewOpen = ref(false)
-
-// 列表只返回 userId，展示前批量补齐上传者名称（带缓存，同一个人只查一次）
-watch(pictures, (list) => {
-  loadUserNames(list.map((item) => item.userId))
-})
 
 const reviewForm = reactive({
   reviewStatus: REVIEW_STATUS.PASS,
