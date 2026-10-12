@@ -134,11 +134,11 @@
               <a-textarea v-model:value="submitForm.introduction" :rows="3" :maxlength="200" show-count placeholder="补充图片描述" />
             </a-form-item>
 
-            <a-form-item label="分类">
+            <a-form-item label="分类" required>
               <a-select
                 v-model:value="submitForm.categoryId"
                 :options="categoryOptions"
-                placeholder="可选"
+                placeholder="请选择分类（公共图库与私有空间都必填）"
                 allow-clear
                 show-search
                 option-filter-prop="label"
@@ -355,6 +355,10 @@ async function handleBatchUpload() {
 async function handleSubmit() {
   if (!uploaded.value) return
   const isPrivate = scope.value === 'private'
+  if (!submitForm.categoryId) {
+    message.warning('请选择分类')
+    return
+  }
   if (isPrivate && !targetSpaceId.value) {
     message.warning('请选择要保存到的空间')
     return
