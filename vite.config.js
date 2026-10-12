@@ -17,7 +17,9 @@ export default defineConfig({
       // 后端 context-path 为 /api，端口 8123
       '/api': {
         target: 'http://localhost:8123',
-        changeOrigin: true
+        changeOrigin: true,
+        // 协作编辑的 WebSocket 走同一个代理路径，必须显式开启协议升级
+        ws: true
       }
     }
   },
