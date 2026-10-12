@@ -27,7 +27,7 @@
       type="warning"
       show-icon
       :message="`${label}的增删改仅管理员可用`"
-      description="当前账号不是管理员，只能查看列表，无法新建、改名或删除。"
+      description="当前账号不是管理员，只能查看列表，无法新建、修改或删除。"
     />
 
     <section class="surface-card">
@@ -73,10 +73,6 @@
             </span>
           </template>
 
-          <template v-else-if="column.key === 'id'">
-            <span class="id-cell">#{{ record.id }}</span>
-          </template>
-
           <template v-else-if="column.key === 'name'">
             <a-tag class="name-tag">{{ record[nameKey] }}</a-tag>
           </template>
@@ -91,7 +87,7 @@
 
           <template v-else-if="column.key === 'action'">
             <a-space>
-              <a-button type="link" size="small" :disabled="!isAdmin" @click="openEdit(record)">改名</a-button>
+              <a-button type="link" size="small" :disabled="!isAdmin" @click="openEdit(record)">修改</a-button>
               <a-button type="link" size="small" danger :disabled="!isAdmin" @click="handleDelete(record)">
                 删除
               </a-button>
@@ -222,7 +218,6 @@ const pagination = computed(() => ({
 
 const columns = computed(() => [
   { title: '排序', key: 'sort', width: 90 },
-  { title: 'ID', key: 'id', width: 80 },
   { title: `${label.value}名称`, key: 'name' },
   { title: '创建时间', key: 'createTime', width: 180 },
   { title: '最近编辑', key: 'editTime', width: 180 },
@@ -242,7 +237,8 @@ watch(keyword, () => {
 async function reload() {
   loading.value = true
   try {
-    await dictStore.loadAdmin(true)
+    // 只加载当前类型的管理端字典，不在分类页去拉标签接口
+    await dictStore.loadAdmin(true, props.type)
     // 后端已按 sort 升序返回，本地副本保持同一顺序
     rows.value = [...storeRows.value]
   } finally {
@@ -305,7 +301,8 @@ async function saveOrder(next, prev) {
   try {
     await api.value.sort(items)
     message.success('排序已保存')
-    await dictStore.refreshAll()
+    // 只刷新当前类型：普通字典 + 管理端字典各一次，不再重复请求另一个类型
+    await dictStore.loadAdmin(true, props.type)
     rows.value = [...storeRows.value]
   } catch (e) {
     // 保存失败回滚到拖动前的顺序，避免界面和库里不一致
@@ -356,7 +353,7 @@ async function handleSubmit() {
       message.success(`${label.value}创建成功`)
     }
     modalOpen.value = false
-    await dictStore.refreshAll()
+    await dictStore.loadAdmin(true, props.type)
     rows.value = [...storeRows.value]
   } catch (e) {
     /* 拦截器已提示具体原因（重名 / 被引用 / 无权限等） */
@@ -378,7 +375,7 @@ function handleDelete(record) {
       try {
         await api.value.remove(record.id)
         message.success(`${label.value}已删除`)
-        await dictStore.refreshAll()
+        await dictStore.loadAdmin(true, props.type)
         rows.value = [...storeRows.value]
       } catch (e) {
         /* 拦截器已提示 */
@@ -430,11 +427,6 @@ onMounted(reload)
 
 .count-text {
   font-size: 13px;
-}
-
-.id-cell {
-  color: var(--text-tertiary);
-  font-variant-numeric: tabular-nums;
 }
 
 .drag-tip {

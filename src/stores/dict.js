@@ -67,22 +67,28 @@ export const useDictStore = defineStore('dict', {
      * 加载普通字典（下拉选项用）。已加载过则跳过，force 用于管理端改完强制刷新。
      * 并发调用共享同一个 in-flight 请求，避免多个组件同时挂载时后面的调用空手返回。
      * @param {boolean} force 是否强制刷新
+     * @param {('category'|'tag'|null)} type 指定类型时只加载该类型，避免无关接口调用
      */
-    load(force = false) {
+    load(force = false, type = null) {
+      const needCat = !type || type === 'category'
+      const needTag = !type || type === 'tag'
       if (this.loaded && !force) return Promise.resolve()
       if (pendingLoad && !force) return pendingLoad
       this.loading = true
-      pendingLoad = Promise.all([queryCategoryList(), queryTagList()])
-        .then(([categories, tags]) => {
-          this.categories = Array.isArray(categories) ? categories : []
-          this.tags = Array.isArray(tags) ? tags : []
-          this.loaded = true
-        })
+      const tasks = []
+      if (needCat) {
+        tasks.push(queryCategoryList().then((c) => { this.categories = Array.isArray(c) ? c : [] }))
+      }
+      if (needTag) {
+        tasks.push(queryTagList().then((t) => { this.tags = Array.isArray(t) ? t : [] }))
+      }
+      pendingLoad = Promise.all(tasks)
+        .then(() => { this.loaded = true })
         .catch(() => {
           // 未登录或接口异常时保持空字典，展示层会回退成 #id
           if (force) {
-            this.categories = []
-            this.tags = []
+            if (needCat) this.categories = []
+            if (needTag) this.tags = []
           }
         })
         .finally(() => {
@@ -92,26 +98,45 @@ export const useDictStore = defineStore('dict', {
       return pendingLoad
     },
 
-    /** 加载管理端字典（含创建 / 编辑时间） */
-    async loadAdmin(force = false) {
+    /**
+     * 加载管理端字典（含创建 / 编辑时间）。
+     * type 指定时只加载对应类型，分类页就不会去拉标签接口。
+     * @param {boolean} force 是否强制刷新
+     * @param {('category'|'tag'|null)} type 指定类型时只加载该类型
+     */
+    async loadAdmin(force = false, type = null) {
+      const needCat = !type || type === 'category'
+      const needTag = !type || type === 'tag'
       if (this.adminLoaded && !force) return
       try {
-        const [categories, tags] = await Promise.all([
-          queryAdminCategoryList(),
-          queryAdminTagList()
-        ])
-        this.adminCategories = Array.isArray(categories) ? categories : []
-        this.adminTags = Array.isArray(tags) ? tags : []
+        const tasks = []
+        if (needCat) {
+          tasks.push(queryAdminCategoryList().then((c) => { this.adminCategories = Array.isArray(c) ? c : [] }))
+        }
+        if (needTag) {
+          tasks.push(queryAdminTagList().then((t) => { this.adminTags = Array.isArray(t) ? t : [] }))
+        }
+        await Promise.all(tasks)
         this.adminLoaded = true
       } catch (e) {
         /* 无权限时列表保持为空，页面会给出提示 */
       }
     },
 
-    /** 管理端增删改后调用：让全站下拉与展示拿到最新名称 */
-    async refreshAll() {
-      this.adminLoaded = false
-      await Promise.all([this.load(true), this.loadAdmin(true)])
+    /**
+     * 管理端增删改后调用：让全站下拉与展示拿到最新名称。
+     * 传入 type 时只刷新该类型（普通字典 + 管理端字典），避免无关接口重复请求。
+     * 不传 type 则全量刷新（登录态变化等场景）。
+     * @param {('category'|'tag'|null)} type 指定类型时只刷新该类型
+     */
+    async refreshAll(type = null) {
+      if (type) {
+        await Promise.all([this.load(true, type), this.loadAdmin(true, type)])
+      } else {
+        this.loaded = false
+        this.adminLoaded = false
+        await Promise.all([this.load(true), this.loadAdmin(true)])
+      }
     },
 
     reset() {
