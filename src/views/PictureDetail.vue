@@ -26,7 +26,7 @@
               <template #icon>
                 <LinkOutlined />
               </template>
-              复制页面链接
+              复制链接
             </a-button>
             <a-button @click="runSearch">
               <template #icon>
@@ -269,11 +269,15 @@ async function handleDownload(pic) {
 }
 
 async function handleCopyUrl() {
-  // 复制的是当前页面地址，不是图片直链：
+  const pic = picture.value
+  if (!pic) return
+  // 复制的是「分享文案 + 当前页面地址」，不是图片直链：
   // 原图地址（COS 直链）任何人拿到都能直接下载，绕过后端的登录校验，
   // 下载只允许走 /picture/download 接口，所以不把图片地址给用户
-  const ok = await copyText(window.location.href)
-  message.success(ok ? '页面链接已复制' : '复制失败，请手动复制')
+  const name = pic.picName || '未命名图片'
+  const text = `你的好友给你分享了壁纸《${name}》，快来使用看看吧 ${window.location.href}`
+  const ok = await copyText(text)
+  message.success(ok ? '分享内容已复制' : '复制失败，请手动复制')
 }
 
 function goBack() {
