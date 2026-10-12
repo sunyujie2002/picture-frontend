@@ -1,5 +1,6 @@
 import dayjs from 'dayjs'
 import {
+  NOT_LOGIN_MESSAGE,
   REVIEW_STATUS_MAP,
   SPACE_LEVEL_MAP,
   SPACE_ROLE_MAP,
@@ -7,6 +8,9 @@ import {
   USER_ROLE_MAP
 } from '@/constants'
 import { getToken } from '@/api/request'
+
+/** ErrorCode.NOT_LOGIN_ERROR，与后端一致 */
+const NOT_LOGIN_CODE = 40100
 
 /**
  * 格式化文件体积
@@ -110,14 +114,25 @@ export async function downloadPicture(picture) {
     throw new Error('网络异常，下载失败，请稍后重试')
   }
 
-  // 后端在异常（未登录 / 无权限 / 未过审 / 图片不存在 / 参数错误）时返回 JSON 错误体
-  if (!resp.ok) {
-    let reason = `下载失败（${resp.status}）`
+  // 后端异常（未登录 / 无权限 / 未过审 / 图片不存在 / 参数错误）时返回的是
+  // 「HTTP 200 + JSON 错误体」——LoginInterceptor 抛的异常由全局异常处理器写成 JSON，
+  // 状态码仍是 200，所以不能只看 resp.ok，否则会把错误体当成文件内容下载下来。
+  // 成功下载时后端返回的是 application/octet-stream，据此区分。
+  const contentType = (resp.headers.get('content-type') || '').toLowerCase()
+  if (!resp.ok || contentType.includes('application/json')) {
+    let code = null
+    let reason = resp.ok ? '下载失败' : `下载失败（${resp.status}）`
     try {
       const errBody = await resp.json()
+      code = errBody?.code
       if (errBody?.message) reason = errBody.message
     } catch (_) {
-      /* 非 JSON 错误体，沿用状态码提示 */
+      /* 非 JSON 错误体，沿用默认提示 */
+    }
+    if (code === NOT_LOGIN_CODE) {
+      // 与路由拦截、接口 40100 保持同一句提示，并触发统一的登录跳转
+      window.dispatchEvent(new CustomEvent('app:unauthorized'))
+      throw new Error(NOT_LOGIN_MESSAGE)
     }
     throw new Error(reason)
   }

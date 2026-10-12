@@ -42,7 +42,12 @@ export function displayUrl(picture) {
   return resolveImageUrl(picture?.thumbnailUrl || picture?.url)
 }
 
-/** 原图地址（下载 / 复制链接场景用） */
+/**
+ * 原图地址（COS 直链）
+ * 注意：这是公开可访问的地址，拿到的人不需要登录就能保存图片，
+ * 所以不要用于「复制链接」这类会把它交给用户的场景，
+ * 下载一律走后端 /picture/download 接口（会校验登录态）
+ */
 export function originUrl(picture) {
   return resolveImageUrl(picture?.url)
 }

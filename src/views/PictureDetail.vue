@@ -26,7 +26,7 @@
               <template #icon>
                 <LinkOutlined />
               </template>
-              复制链接
+              复制页面链接
             </a-button>
             <a-button @click="runSearch">
               <template #icon>
@@ -160,7 +160,7 @@ import {
   normalizeColor,
   reviewMeta
 } from '@/utils/format'
-import { originUrl, resolveImageUrl } from '@/utils/image'
+import { resolveImageUrl } from '@/utils/image'
 import { REVIEW_STATUS } from '@/constants'
 import { useUserStore } from '@/stores/user'
 import { useDictStore } from '@/stores/dict'
@@ -269,8 +269,11 @@ async function handleDownload(pic) {
 }
 
 async function handleCopyUrl() {
-  const ok = await copyText(originUrl(picture.value))
-  message.success(ok ? '图片链接已复制' : '复制失败，请手动复制')
+  // 复制的是当前页面地址，不是图片直链：
+  // 原图地址（COS 直链）任何人拿到都能直接下载，绕过后端的登录校验，
+  // 下载只允许走 /picture/download 接口，所以不把图片地址给用户
+  const ok = await copyText(window.location.href)
+  message.success(ok ? '页面链接已复制' : '复制失败，请手动复制')
 }
 
 function goBack() {
