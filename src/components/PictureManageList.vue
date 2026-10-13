@@ -180,9 +180,9 @@
             </template>
           </a-table>
 
-          <!-- 卡片视图 -->
+          <!-- 卡片视图：固定一行 4 张（与首页一致，窄屏由 PictureGrid 自动降为 3/2 张） -->
           <div v-else class="card-wrap">
-            <PictureGrid :items="pictures" :gap="18">
+            <PictureGrid :items="pictures" :gap="18" :columns="4">
               <template #default="{ item }">
                 <PictureCard
                   :picture="item"
@@ -388,7 +388,8 @@ const query = reactive({
   picFormat: undefined,
   picColor: '',
   pageNum: 1,
-  pageSize: 20,
+  // 每页默认 12 条：与首页图库保持一致，卡片 4 张一行刚好 3 行
+  pageSize: 12,
   sortField: 'createTime',
   sortOrder: SORT_ORDER.DESC
 })

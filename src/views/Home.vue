@@ -188,7 +188,8 @@ const query = reactive({
   picFormat: undefined,
   picColor: '',
   pageNum: 1,
-  pageSize: 20,
+  // 每页默认 12 条：4 张一行刚好 3 行，首屏信息密度更舒服
+  pageSize: 12,
   sortField: 'createTime',
   sortOrder: SORT_ORDER.DESC
 })

@@ -246,7 +246,8 @@ const query = reactive({
   picFormat: undefined,
   picColor: '',
   pageNum: 1,
-  pageSize: 20,
+  // 审核台每页默认 12 条，与其它图片列表保持一致
+  pageSize: 12,
   sortField: 'createTime',
   sortOrder: SORT_ORDER.DESC
 })
