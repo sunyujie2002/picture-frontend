@@ -12,7 +12,8 @@
         <!-- 左侧预览 -->
         <section class="preview surface-card">
           <div class="preview-stage">
-            <img v-if="cover" :src="cover" :alt="picture.picName || '图片'" class="stage-img" />
+            <!-- 用 canvas 渲染：页面上没有 <img src>，右键另存为 / 复制图片地址 / 新标签打开全部失效 -->
+            <CanvasPicture v-if="cover" :src="cover" :alt="picture.picName || '图片'" :max-height-vh="62" />
             <a-empty v-else description="图片加载失败" />
           </div>
           <div class="preview-actions">
@@ -142,6 +143,7 @@ import {
   SearchOutlined
 } from '@ant-design/icons-vue'
 import PictureEditModal from '@/components/PictureEditModal.vue'
+import CanvasPicture from '@/components/CanvasPicture.vue'
 import PictureGrid from '@/components/PictureGrid.vue'
 import PictureCard from '@/components/PictureCard.vue'
 import {
@@ -309,6 +311,11 @@ function goDetail(pic) {
   router.push({ path: `/picture/${pic.id}`, state: { picture: pic } })
 }
 
+// 防扒图只保留 canvas 渲染这一层（见 components/CanvasPicture.vue）：
+// 页面上没有 <img src>，右键另存为 / 复制图片地址 / 新标签打开图片都没有入口。
+// 不再禁用右键菜单、不再拦 F12：那会挡住"复制链接""新标签打开"这类正常使用，
+// 而 canvas 已经让针对图片的右键项失效，禁用整个菜单属于误伤。
+
 onMounted(async () => {
   await fetchDetail()
   if (route.query.sim === '1') {
@@ -356,12 +363,8 @@ onMounted(async () => {
   min-height: 320px;
 }
 
-.stage-img {
-  max-width: 100%;
-  max-height: 62vh;
-  border-radius: 8px;
-  box-shadow: 0 8px 28px -10px rgba(31, 36, 48, 0.3);
-}
+/* 主图改用 CanvasPicture（canvas 渲染）后不再需要 .stage-img：
+   页面上不存在 <img>，右键另存为 / 复制图片地址 / 新标签打开都没有入口 */
 
 .preview-actions {
   margin-top: 16px;

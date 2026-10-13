@@ -1,11 +1,15 @@
 <template>
   <div class="pic-card" :class="{ 'is-checked': checked }" @click="emit('click', picture)">
     <div class="thumb" :style="thumbStyle">
-      <img
+      <!-- 用 canvas 渲染：页面上没有 <img src>，右键另存为 / 复制图片地址 / 新标签打开都失效。
+           cover 模式填满 16:10 容器；lazy 保证列表滚动到才解码绘制，不拖慢首屏 -->
+      <CanvasPicture
         v-if="cover"
         :src="cover"
         :alt="picture.picName || '图片'"
-        loading="lazy"
+        mode="cover"
+        :max-dpr="1.5"
+        lazy
         @error="onError"
       />
       <div v-else class="thumb-fallback">
@@ -91,6 +95,7 @@ import {
 import { useDictStore } from '@/stores/dict'
 import { formatSize, formatTime, normalizeColor, reviewMeta } from '@/utils/format'
 import { resolveImageUrl } from '@/utils/image'
+import CanvasPicture from '@/components/CanvasPicture.vue'
 
 const dictStore = useDictStore()
 
