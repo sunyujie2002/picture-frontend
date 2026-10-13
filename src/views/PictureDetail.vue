@@ -153,7 +153,6 @@ import {
 } from '@/api/picture'
 import {
   copyText,
-  downloadPicture,
   formatScale,
   formatSize,
   formatTime,
@@ -164,11 +163,13 @@ import { resolveImageUrl } from '@/utils/image'
 import { REVIEW_STATUS } from '@/constants'
 import { useUserStore } from '@/stores/user'
 import { useDictStore } from '@/stores/dict'
+import { useDownloadStore } from '@/stores/download'
 
 const route = useRoute()
 const router = useRouter()
 const userStore = useUserStore()
 const dictStore = useDictStore()
+const downloadStore = useDownloadStore()
 
 const picture = ref(null)
 const loading = ref(false)
@@ -259,13 +260,10 @@ async function handleDelete() {
   }
 }
 
-async function handleDownload(pic) {
-  try {
-    await downloadPicture(pic || picture.value)
-    message.success('已开始下载')
-  } catch (e) {
-    message.error(e?.message || '下载失败，请稍后重试')
-  }
+// 下载交给全局下载面板：点击即刻出现进度条，可并行多个、可取消，
+// 成功 / 失败状态由面板展示，这里不再重复弹 message
+function handleDownload(pic) {
+  downloadStore.start(pic || picture.value)
 }
 
 async function handleCopyUrl() {
@@ -275,14 +273,23 @@ async function handleCopyUrl() {
   // 原图地址（COS 直链）任何人拿到都能直接下载，绕过后端的登录校验，
   // 下载只允许走 /picture/download 接口，所以不把图片地址给用户
   const name = pic.picName || '未命名图片'
-  const text = `你的好友给你分享了壁纸《${name}》，快来使用看看吧 ${window.location.href}`
+  // 分享链接固定带上 from=share：详情页据此识别「从分享进来」，
+  // 此时没有站内上级页面，「返回图库」直接回首页而不是退到浏览器空白页
+  const shareUrl = `${window.location.origin}/picture/${pic.id}?from=share`
+  const text = `你的好友给你分享了壁纸《${name}》，快来使用看看吧 ${shareUrl}`
   const ok = await copyText(text)
   message.success(ok ? '分享内容已复制' : '复制失败，请手动复制')
 }
 
 function goBack() {
-  if (window.history.length > 1) router.back()
-  else router.push('/')
+  // ① 分享链接打开（URL 带 from=share）：没有站内上级页面，回图库首页；
+  // ② 其余一律返回上一级页面——图片管理 / 空间 / 首页等列表页跳进来的都回上级
+  // （不要用 history.state / history.length 做判断，某些环境下不可靠，会误跳首页）
+  if (route.query.from === 'share') {
+    router.push('/')
+  } else {
+    router.back()
+  }
 }
 
 async function runSearch() {

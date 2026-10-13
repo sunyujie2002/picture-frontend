@@ -637,7 +637,7 @@ onMounted(() => {
 }
 
 .mini-tag {
-  margin: 0;
+  margin-left: 6px;
   line-height: 16px;
   font-size: 11px;
 }

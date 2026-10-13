@@ -302,7 +302,8 @@ async function saveOrder(next, prev) {
     await api.value.sort(items)
     message.success('排序已保存')
     // 只刷新当前类型：普通字典 + 管理端字典各一次，不再重复请求另一个类型
-    await dictStore.loadAdmin(true, props.type)
+    // （普通字典也必须刷：全站下拉、图片列表/表单里的名称都读它，只刷管理端会残留旧数据）
+    await dictStore.refreshAll(props.type)
     rows.value = [...storeRows.value]
   } catch (e) {
     // 保存失败回滚到拖动前的顺序，避免界面和库里不一致
@@ -353,7 +354,8 @@ async function handleSubmit() {
       message.success(`${label.value}创建成功`)
     }
     modalOpen.value = false
-    await dictStore.loadAdmin(true, props.type)
+    // 普通字典 + 管理端字典都刷新：上传页/筛选下拉/图片列表里的名称要立刻拿到最新值
+    await dictStore.refreshAll(props.type)
     rows.value = [...storeRows.value]
   } catch (e) {
     /* 拦截器已提示具体原因（重名 / 被引用 / 无权限等） */
@@ -375,7 +377,8 @@ function handleDelete(record) {
       try {
         await api.value.remove(record.id)
         message.success(`${label.value}已删除`)
-        await dictStore.loadAdmin(true, props.type)
+        // 同步刷新普通字典：别处不能再显示已删除的名称
+        await dictStore.refreshAll(props.type)
         rows.value = [...storeRows.value]
       } catch (e) {
         /* 拦截器已提示 */

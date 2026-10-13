@@ -120,6 +120,9 @@
         <span class="footer-text">上传、检索与管理，让每一张图片都被找到</span>
       </div>
     </footer>
+
+    <!-- 全局下载进度面板：任何页面点击下载后都在此实时展示进度 -->
+    <DownloadProgressPanel />
   </div>
 </template>
 
@@ -147,6 +150,7 @@ import { useDictStore } from '@/stores/dict'
 import { useSpaceStore } from '@/stores/space'
 import { useThemeStore } from '@/stores/theme'
 import { resolveImageUrl } from '@/utils/image'
+import DownloadProgressPanel from '@/components/DownloadProgressPanel.vue'
 
 const route = useRoute()
 const router = useRouter()

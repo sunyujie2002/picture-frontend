@@ -86,19 +86,28 @@ export function spaceRoleMeta(role) {
 }
 
 /**
- * 下载图片（统一走后端接口 GET /picture/download?id={id}）
+ * 下载图片（统一走后端接口 GET /picture/download?id={id}），支持流式进度回调
  *
  * 后端按 id 鉴权后把 COS 文件以 application/octet-stream 流式返回，
  * 并在响应头 Content-Disposition: attachment; filename*=UTF-8''<编码文件名>
- * 中声明真实文件名（数据库 picName + 实际格式）。
+ * 中声明真实文件名（数据库 picName + 实际格式），同时设置 Content-Length（picSize），
+ * 前端可据此计算真实下载百分比。
  *
  * 鉴权依赖 Authorization 请求头（token 存于 localStorage，不会随浏览器普通跳转携带），
  * 因此必须用 fetch 显式带上 Authorization，不能仅靠 <a href> / window.location 跳转。
  *
+ * 为了实现「点击后立刻看到进度」，不等整个文件传完：优先用 response.body 分块读取，
+ * 每收到一个分块回调一次 onProgress；老浏览器没有 body 流时降级为整体 blob
+ * （进度只在完成时跳 100%，功能不受影响）。
+ *
  * @param {object} picture 图片对象，至少包含 id（字符串，勿转 Number）
+ * @param {object} [options]
+ * @param {(p: {loaded: number, total: number}) => void} [options.onProgress] 进度回调（单位字节）
+ * @param {AbortSignal} [options.signal] 取消信号（AbortController）
  * @returns {Promise<void>} 成功 resolve；失败 reject（错误信息优先取自后端响应）
  */
-export async function downloadPicture(picture) {
+export async function downloadPicture(picture, options = {}) {
+  const { onProgress, signal } = options
   const id = picture?.id
   if (id === null || id === undefined || id === '') {
     throw new Error('图片ID缺失，无法下载')
@@ -109,8 +118,10 @@ export async function downloadPicture(picture) {
 
   let resp
   try {
-    resp = await fetch(url, { method: 'GET', headers: { Authorization: getToken() } })
+    resp = await fetch(url, { method: 'GET', headers: { Authorization: getToken() }, signal })
   } catch (e) {
+    // 用户主动取消：原样抛出，由调用方静默移除任务，不当成错误提示
+    if (e?.name === 'AbortError') throw e
     throw new Error('网络异常，下载失败，请稍后重试')
   }
 
@@ -137,11 +148,35 @@ export async function downloadPicture(picture) {
     throw new Error(reason)
   }
 
-  const blob = await resp.blob()
   // 优先用后端声明的文件名；缺失时回退到前端记录的字段
   const filename =
     parseDispositionFilename(resp.headers.get('content-disposition')) ||
     buildFallbackName(picture)
+  // 后端已设置 Content-Length；缺失（极少数情况）时 total 为 0，
+  // 进度退化为「已接收字节数」+ 滚动动画，不影响下载本身
+  const total = Number(resp.headers.get('content-length')) || 0
+
+  // 流式读取：每收到一个分块就回调一次进度，页面进度条随之实时更新
+  let blob
+  if (resp.body && typeof resp.body.getReader === 'function') {
+    const reader = resp.body.getReader()
+    const chunks = []
+    let loaded = 0
+    for (;;) {
+      const { done, value } = await reader.read()
+      if (done) break
+      if (value && value.length > 0) {
+        chunks.push(value)
+        loaded += value.length
+        onProgress?.({ loaded, total })
+      }
+    }
+    blob = new Blob(chunks)
+  } else {
+    // 老浏览器降级：整体读取，完成时一次性回调
+    blob = await resp.blob()
+    onProgress?.({ loaded: blob.size, total: blob.size })
+  }
 
   const blobUrl = URL.createObjectURL(blob)
   const a = document.createElement('a')

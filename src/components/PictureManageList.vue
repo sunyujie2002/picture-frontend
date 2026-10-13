@@ -125,14 +125,14 @@
               </template>
 
               <template v-else-if="column.key === 'tags'">
-                <template v-if="record.tags && record.tags.length">
+                <span v-if="record.tags && record.tags.length" class="taxonomy-cell">
                   <a-tag v-for="t in record.tags.slice(0, 3)" :key="t" class="taxonomy-tag">
                     {{ dictStore.tagName(t) }}
                   </a-tag>
                   <a-tag v-if="record.tags.length > 3" class="taxonomy-tag">
                     +{{ record.tags.length - 3 }}
                   </a-tag>
-                </template>
+                </span>
                 <span v-else class="text-tertiary">-</span>
               </template>
 
@@ -306,7 +306,8 @@ import {
 } from '@/constants'
 import { useDictStore } from '@/stores/dict'
 import { useSpaceStore } from '@/stores/space'
-import { downloadPicture, formatSize, formatTime, normalizeColor, reviewMeta } from '@/utils/format'
+import { useDownloadStore } from '@/stores/download'
+import { formatSize, formatTime, normalizeColor, reviewMeta } from '@/utils/format'
 import { displayUrl } from '@/utils/image'
 const props = defineProps({
   /** 列表查询函数：(params) => Promise<Page>，由页面决定走公共还是私有接口 */
@@ -343,6 +344,7 @@ const emit = defineEmits(['changed'])
 const router = useRouter()
 const dictStore = useDictStore()
 const spaceStore = useSpaceStore()
+const downloadStore = useDownloadStore()
 
 const categoryOptions = computed(() => dictStore.categoryOptions)
 const tagOptions = computed(() => dictStore.tagOptions)
@@ -491,13 +493,9 @@ function goDetail(pic) {
   router.push({ path: `/picture/${pic.id}`, state: { picture: pic } })
 }
 
-async function handleDownload(pic) {
-  try {
-    await downloadPicture(pic)
-    message.success('已开始下载')
-  } catch (e) {
-    message.error(e?.message || '下载失败，请稍后重试')
-  }
+// 下载交给全局下载面板：点击即刻出现进度条，可并行多个、可取消
+function handleDownload(pic) {
+  downloadStore.start(pic)
 }
 
 function openEdit(pic) {
@@ -688,6 +686,12 @@ defineExpose({ refresh: fetchList })
   height: 12px;
   border-radius: 4px;
   border: 1px solid rgba(31, 36, 48, 0.1);
+}
+
+.taxonomy-cell {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
 }
 
 .taxonomy-tag {

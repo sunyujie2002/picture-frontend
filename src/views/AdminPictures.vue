@@ -106,14 +106,14 @@
           </template>
 
           <template v-else-if="column.key === 'tags'">
-            <template v-if="record.tags && record.tags.length">
+            <span v-if="record.tags && record.tags.length" class="taxonomy-cell">
               <a-tag v-for="t in record.tags.slice(0, 3)" :key="t" class="taxonomy-tag">
                 {{ dictStore.tagName(t) }}
               </a-tag>
               <a-tag v-if="record.tags.length > 3" class="taxonomy-tag">
                 +{{ record.tags.length - 3 }}
               </a-tag>
-            </template>
+            </span>
             <span v-else class="text-tertiary">-</span>
           </template>
 
@@ -512,6 +512,12 @@ onMounted(() => {
 
 .table-card {
   padding: 6px 8px 2px;
+}
+
+.taxonomy-cell {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
 }
 
 .taxonomy-tag {
